@@ -40,8 +40,9 @@ async function lockPaidPreferences() {
 
 async function verifyLicense(token: string, force = false) {
   const cache = readCache();
-  if (!force && cache?.token === token && isLicenseFresh(cache)) {
-    applyUnlockedState(true, 'Plus is active on this device.');
+  if (!force && cache?.token === token && Date.now() - cache.checkedAt < 86_400_000) {
+    if (isLicenseFresh(cache)) applyUnlockedState(true, 'Plus is active on this device.');
+    else applyUnlockedState(false, 'License no longer active. Free resume cards still work.');
     return;
   }
   if (!navigator.onLine && cache?.token === token && cache.valid) {

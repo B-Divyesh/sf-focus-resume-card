@@ -20,8 +20,9 @@ function setLicenseMessage(message: string, valid = false) {
 async function verifyLicense(token: string, force = false) {
   let cache: { token: string; valid: boolean; checkedAt: number } | null = null;
   try { cache = JSON.parse(localStorage.getItem(CACHE_KEY) ?? 'null'); } catch { /* ignore malformed local data */ }
-  if (!force && cache?.token === token && cache.valid && Date.now() - cache.checkedAt < 86_400_000) {
-    setLicenseMessage('Plus license active. Paste this same token into the extension settings.', true);
+  if (!force && cache?.token === token && Date.now() - cache.checkedAt < 86_400_000) {
+    if (cache.valid) setLicenseMessage('Plus license active. Paste this same token into the extension settings.', true);
+    else setLicenseMessage('License no longer active. You can keep using every free recovery feature.');
     return;
   }
   setLicenseMessage('Verifying license…');

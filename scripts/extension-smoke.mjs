@@ -1,6 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import AxeBuilder from '@axe-core/playwright';
 import { chromium } from '@playwright/test';
 
 const extensionPath = resolve('.output/chrome-mv3');
@@ -15,6 +16,11 @@ const browserErrors = [];
 const watchPage = (page) => {
   page.on('pageerror', (error) => browserErrors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') browserErrors.push(message.text()); });
+};
+const assertAccessible = async (page, label) => {
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
+  const serious = results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
+  if (serious.length) throw new Error(`${label} axe violations: ${serious.map((violation) => violation.id).join(', ')}`);
 };
 
 try {
@@ -35,6 +41,7 @@ try {
   watchPage(popup);
   await popup.goto(`chrome-extension://${extensionId}/popup.html`);
   await popup.getByRole('heading', { name: action }).waitFor();
+  await assertAccessible(popup, 'saved-card popup');
 
   const resumedPagePromise = context.waitForEvent('page');
   await popup.locator('#resume-button').click();
@@ -55,8 +62,9 @@ try {
   watchPage(options);
   await options.goto(`chrome-extension://${extensionId}/options.html`);
   await options.getByRole('heading', { name: 'Settings that stay out of the way.' }).waitFor();
+  await assertAccessible(options, 'settings');
   if (browserErrors.length) throw new Error(`Extension console errors: ${browserErrors.join('; ')}`);
-  console.log('extension smoke: render, resume, reopen, clear, settings, and console passed');
+  console.log('extension smoke: render, resume, reopen, clear, settings, axe, and console passed');
 } finally {
   await context.close();
   await rm(profilePath, { recursive: true, force: true });

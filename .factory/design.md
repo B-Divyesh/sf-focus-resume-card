@@ -6,7 +6,7 @@ An interruption feels like losing the trail, not failing a productivity test. Th
 
 ## Palette
 
-The default “Field” treatment is a paper map in low evening light. A dark “Night survey” treatment is included through `prefers-color-scheme`; paid cosmetic alternatives never affect readability.
+The default “Field” treatment is a paper map in low evening light and automatically shifts to its dark values through `prefers-color-scheme`. Plus can force the dark “Night survey” treatment or choose Lichen; paid cosmetic alternatives never gate readable contrast.
 
 | Token | Field | Night survey | Purpose |
 | --- | --- | --- | --- |

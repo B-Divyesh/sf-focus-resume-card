@@ -20,7 +20,7 @@
 :root[data-theme="night"] { color-scheme: dark; --paper: #17201d; --surface: #202b27; --ink: #f5f0de; --muted: #b9c5be; --trail: #ff9278; --trail-contrast: #17201d; --contour: #50625a; --success: #78d5a4; --warning: #f3c274; --danger: #ff9b92; --shadow: 0 14px 36px rgb(0 0 0 / 28%); }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="field"]):not([data-theme="lichen"]) { color-scheme: dark; --paper: #17201d; --surface: #202b27; --ink: #f5f0de; --muted: #b9c5be; --trail: #ff9278; --trail-contrast: #17201d; --contour: #50625a; --success: #78d5a4; --warning: #f3c274; --danger: #ff9b92; --shadow: 0 14px 36px rgb(0 0 0 / 28%); }
+  :root[data-theme="field"], :root:not([data-theme]) { color-scheme: dark; --paper: #17201d; --surface: #202b27; --ink: #f5f0de; --muted: #b9c5be; --trail: #ff9278; --trail-contrast: #17201d; --contour: #50625a; --success: #78d5a4; --warning: #f3c274; --danger: #ff9b92; --shadow: 0 14px 36px rgb(0 0 0 / 28%); }
 }
 
 * { box-sizing: border-box; }
