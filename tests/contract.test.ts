@@ -21,6 +21,11 @@ describe('document accessibility contract', () => {
     expect(images.length).toBeGreaterThan(0);
     expect(images.every((image) => /\balt="[^"]*"/u.test(image))).toBe(true);
   });
+
+  it('makes the landing page skip-link target focusable', async () => {
+    const html = await readFile('site/index.html', 'utf8');
+    expect(html).toMatch(/<main id="main" tabindex="-1">/u);
+  });
 });
 
 describe('privacy and performance contract', () => {

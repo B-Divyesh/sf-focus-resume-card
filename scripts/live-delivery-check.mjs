@@ -14,11 +14,15 @@ const [home, download, missingDownload, checkout] = await Promise.all([
 ]);
 
 const zip = Buffer.from(await download.arrayBuffer());
+const homeHtml = await home.text();
+const hashedAsset = homeHtml.match(/\/assets\/[^"']+\.(?:js|css)/u)?.[0];
 const csp = home.headers.get('content-security-policy') ?? '';
 const permissions = home.headers.get('permissions-policy') ?? '';
 const cacheControl = download.headers.get('cache-control') ?? '';
 
 requireCondition(home.ok, `homepage returned ${home.status}`);
+requireCondition(Boolean(hashedAsset), 'homepage did not reference a hashed asset');
+const asset = await fetch(`${site}${hashedAsset}`);
 requireCondition(download.ok, `extension download returned ${download.status}`);
 requireCondition(/application\/zip|application\/x-zip-compressed/u.test(download.headers.get('content-type') ?? ''), `extension download MIME is ${download.headers.get('content-type')}`);
 requireCondition(zip.subarray(0, 4).equals(Buffer.from('PK\x03\x04')), 'extension download did not contain ZIP bytes');
@@ -26,6 +30,7 @@ requireCondition(missingDownload.status === 404, `missing download must be 404, 
 requireCondition(csp.includes("default-src 'self'"), 'CSP header is missing or incomplete');
 requireCondition(permissions.includes('camera=()'), 'Permissions-Policy header is missing or incomplete');
 requireCondition(!/max-age=30/u.test(cacheControl), 'download inherited the prior 30-second cache policy');
+requireCondition(/max-age=31536000/u.test(asset.headers.get('cache-control') ?? '') && /immutable/u.test(asset.headers.get('cache-control') ?? ''), 'hashed asset does not have immutable caching');
 requireCondition(checkout.status >= 300 && checkout.status < 400, `live checkout returned ${checkout.status}`);
 requireCondition((checkout.headers.get('location') ?? '').startsWith('https://checkout.dodopayments.com/'), 'live checkout did not redirect to Dodo');
 

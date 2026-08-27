@@ -36,6 +36,7 @@ npm run dev:site     # landing site at http://localhost:5173
 npm run typecheck
 npm test
 npm run build
+npm run test:artifact
 ```
 
 `npm run build` is the reproducible release command. It creates the unpacked extension in `.output/chrome-mv3`, builds the deployable static site in `dist/site`, and places the installable ZIP at `dist/site/downloads/focus-resume-card.zip`. The static deployment root is exactly `dist/site`.
@@ -52,6 +53,12 @@ npm run test:extension
 
 If Chromium is managed outside Playwright, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/absolute/path/to/chrome` for the final two commands.
 
+After deployment, verify the production download, headers, immutable assets, missing-download handling, and live Dodo checkout redirect with:
+
+```bash
+npm run test:live
+```
+
 ## Install the extension locally
 
 1. Run `npm run build` and unzip `dist/site/downloads/focus-resume-card.zip`.
@@ -61,7 +68,7 @@ If Chromium is managed outside Playwright, set `PLAYWRIGHT_CHROMIUM_EXECUTABLE=/
 
 ## Privacy and payments
 
-The extension does not load remote scripts or fonts. Resume cards remain in browser extension storage. A network request is made only when a user supplies a Plus license, at most once per day, to the Sociobot billing verification endpoint. Checkout is hosted by Sociobot/Dodo; no payment provider is embedded here. The factory must register the `focus-resume-card` product before checkout can accept live purchases.
+The extension does not load remote scripts or fonts. Resume cards remain in browser extension storage. A network request is made only when a user supplies a Plus license, at most once per day, to the Sociobot billing verification endpoint. Checkout is hosted by Sociobot/Dodo; no payment provider is embedded here. The live `focus-resume-card` checkout is registered with Sociobot.
 
 See [Privacy](https://focus-resume-card.sociobot.in/privacy/) and [Terms](https://focus-resume-card.sociobot.in/terms/).
 
