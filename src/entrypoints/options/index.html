@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Focus Resume Card settings</title>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to settings</a>
+    <header class="site-header">
+      <a class="wordmark" href="https://focus-resume-card.sociobot.in" target="_blank" rel="noreferrer">
+        <span class="mark" aria-hidden="true"></span> Focus Resume Card
+      </a>
+    </header>
+    <main id="main">
+      <p class="eyebrow">Map room</p>
+      <h1>Settings that stay out of the way.</h1>
+      <p class="intro">Your resume card and preferences live in this browser profile. No account, feed, streak, or analytics.</p>
+
+      <section aria-labelledby="appearance-title">
+        <div class="section-heading"><span class="index">01</span><div><h2 id="appearance-title">Map appearance</h2><p>Field is included. Plus adds two alternate map treatments.</p></div></div>
+        <fieldset id="theme-fieldset">
+          <legend>Choose a map treatment</legend>
+          <label class="swatch field"><input type="radio" name="theme" value="field" /><span><strong>Field</strong><small>Warm paper and pine ink</small></span></label>
+          <label class="swatch lichen" data-plus><input type="radio" name="theme" value="lichen" /><span><strong>Lichen</strong><small>Soft green survey sheet · Plus</small></span></label>
+          <label class="swatch night" data-plus><input type="radio" name="theme" value="night" /><span><strong>Night survey</strong><small>Low-glare dark map · Plus</small></span></label>
+        </fieldset>
+      </section>
+
+      <section aria-labelledby="badge-title">
+        <div class="section-heading"><span class="index">02</span><div><h2 id="badge-title">Quiet reminder</h2><p>Optional and off by default. No notifications, sounds, or schedules.</p></div></div>
+        <label class="switch-row" data-plus>
+          <input id="quiet-badge" type="checkbox" />
+          <span><strong>Show a dot on the toolbar icon</strong><small>Only while a resume card is waiting · Plus</small></span>
+        </label>
+      </section>
+
+      <section class="plus-panel" aria-labelledby="plus-title">
+        <div class="route-pin" aria-hidden="true"></div>
+        <p class="eyebrow">One-time support</p>
+        <h2 id="plus-title">Focus Resume Card Plus</h2>
+        <p><strong>$9 once.</strong> Unlock Lichen and Night survey themes plus the optional quiet toolbar marker. Core capture, screenshots, redaction, resume, and export remain free.</p>
+        <p class="merchant">Secure checkout and refunds are handled by Sociobot/Dodo, the merchant of record. A refunded license is automatically revoked.</p>
+        <a class="button primary" id="buy-link" href="https://api.sociobot.in/api/v1/products/focus-resume-card/checkout" target="_blank" rel="noreferrer">Buy Plus — $9 once</a>
+        <div class="license-state" id="license-state" role="status" aria-live="polite">Checking local license…</div>
+        <form id="restore-form">
+          <label for="license-input">Have a license? Paste it here</label>
+          <div class="input-row"><input id="license-input" type="text" autocomplete="off" spellcheck="false" /><button class="button secondary" type="submit">Verify license</button></div>
+          <p class="form-error" id="license-error" role="alert"></p>
+        </form>
+      </section>
+
+      <section class="privacy-note" aria-labelledby="privacy-title">
+        <div class="section-heading"><span class="index">03</span><div><h2 id="privacy-title">Local data</h2><p>Clearing extension data removes the active card, preferences, and license from this device.</p></div></div>
+        <button class="text-button danger" id="clear-local">Clear card and preferences</button>
+      </section>
+      <div id="save-status" role="status" aria-live="polite"></div>
+    </main>
+    <footer><a href="https://focus-resume-card.sociobot.in/privacy" target="_blank" rel="noreferrer">Privacy</a><a href="https://focus-resume-card.sociobot.in/terms" target="_blank" rel="noreferrer">Terms</a></footer>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

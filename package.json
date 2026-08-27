@@ -1,0 +1,28 @@
+{
+  "name": "focus-resume-card",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wxt",
+    "dev:site": "vite --config vite.site.config.ts",
+    "build:extension": "wxt build",
+    "build:site": "vite build --config vite.site.config.ts",
+    "package:extension": "node scripts/package-extension.mjs",
+    "build": "npm run clean && npm run build:extension && npm run build:site && npm run package:extension",
+    "clean": "node scripts/clean.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm test && npm run build",
+    "postinstall": "wxt prepare"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.3",
+    "@types/node": "^24.3.0",
+    "jszip": "^3.10.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.11",
+    "wxt": "^0.21.4"
+  }
+}

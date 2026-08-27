@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A local browser extension that leaves one concrete next action for interrupted developer work." />
+    <meta name="theme-color" content="#f3eedc" />
+    <title>Focus Resume Card — leave one clear trail marker</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="preload" as="image" href="/illustrations/topographic-route.webp" type="image/webp" fetchpriority="high" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="nav-shell">
+      <a class="wordmark" href="/" aria-label="Focus Resume Card home"><span class="mark" aria-hidden="true"></span><span>Focus Resume Card</span></a>
+      <nav aria-label="Primary navigation"><a href="#how">How it works</a><a href="#plus">Plus</a><a class="nav-download" href="/downloads/focus-resume-card.zip" download>Download</a></nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow"><span>Local browser extension</span><span>One card only</span></p>
+          <h1 id="hero-title">Come back to the next step, not the whole project.</h1>
+          <p class="hero-lede">Save one concrete action with the page, selected text, optional screenshot, and elapsed focus block. When you return, that one trail marker appears first.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="/downloads/focus-resume-card.zip" download>Download for Chrome <span aria-hidden="true">↓</span></a>
+            <a class="text-link" href="#install">Installation steps</a>
+          </div>
+          <p class="trust-line"><span aria-hidden="true">●</span> Free core workflow · no account · data stays in your browser</p>
+        </div>
+        <figure class="terrain-figure">
+          <img src="/illustrations/topographic-route.webp" width="1200" height="800" alt="Layered paper topographic map with a broken trail reconnecting at one red waypoint" decoding="async" fetchpriority="high" />
+          <figcaption>Interruption changes the route. It does not erase your next move.</figcaption>
+        </figure>
+      </section>
+
+      <section class="principle-strip" aria-label="Product principles">
+        <p><span>01</span> Not a backlog</p><p><span>02</span> Not a timer score</p><p><span>03</span> Not an AI plan</p>
+      </section>
+
+      <section class="method" id="how" aria-labelledby="how-title">
+        <div class="section-intro">
+          <p class="eyebrow">A smaller return path</p>
+          <h2 id="how-title">Three moves. One waiting card.</h2>
+          <p>Focus Resume Card is built for the moment before attention moves elsewhere—not for organizing the rest of your life.</p>
+        </div>
+        <ol class="route-steps">
+          <li><span class="step-marker">1</span><div><h3>Mark the place</h3><p>The extension brings the current URL and any selected text. Hide either the title or selection before saving.</p></div></li>
+          <li><span class="step-marker">2</span><div><h3>Name the next action</h3><p>Write 5–12 words: a physical move small enough to start without replanning.</p></div></li>
+          <li><span class="step-marker">3</span><div><h3>Resume one tab</h3><p>Open the extension later. Your card—not a task list—appears first and restores the saved page.</p></div></li>
+        </ol>
+      </section>
+
+      <section class="artifact" aria-labelledby="artifact-title">
+        <div class="artifact-note">
+          <p class="eyebrow">The whole product</p>
+          <h2 id="artifact-title">Enough context to move.</h2>
+          <p>Selected code and screenshots are optional. The next action is not. Everything shown here lives in extension storage on this device.</p>
+        </div>
+        <div class="extension-frame" aria-label="Example resume card">
+          <div class="frame-bar"><span class="mini-mark" aria-hidden="true"></span><span>Trail marker</span><span>•••</span></div>
+          <article class="demo-card">
+            <div class="coordinate"><span>Waypoint 01</span><span>11:42 AM</span></div>
+            <div class="demo-action"><span class="waypoint" aria-hidden="true"></span><div><p class="eyebrow">Your next physical action</p><h3>Write failing test for empty response</h3></div></div>
+            <dl>
+              <div><dt>Location</dt><dd>Retry middleware · api.ts<small>localhost</small></dd></div>
+              <div><dt>Carried note</dt><dd>“Return a typed error when attempts is zero.”</dd></div>
+              <div><dt>Focus block</dt><dd>34 minutes</dd></div>
+            </dl>
+            <span class="button primary demo-button">Resume this trail <span aria-hidden="true">→</span></span>
+          </article>
+        </div>
+      </section>
+
+      <section class="privacy-section" aria-labelledby="privacy-heading">
+        <div class="privacy-map" aria-hidden="true"><span class="orbit one"></span><span class="orbit two"></span><span class="local-pin"></span></div>
+        <div><p class="eyebrow">Private by default</p><h2 id="privacy-heading">Your unfinished thought stays nearby.</h2><p>Cards, screenshots, selections, and preferences are stored locally. There is no account, cloud sync, analytics SDK, or third-party runtime script. Clearing extension data clears the card.</p><a class="text-link" href="/privacy/">Read the privacy note</a></div>
+      </section>
+
+      <section class="plus" id="plus" aria-labelledby="plus-title">
+        <div><p class="eyebrow">Optional map pack</p><h2 id="plus-title">The useful part stays free.</h2><p>Plus adds two map treatments and an optional quiet toolbar dot. Capture, screenshots, redaction, resuming, and local storage are always included.</p></div>
+        <div class="price-card">
+          <p class="price"><span>$</span>9 <small>once</small></p>
+          <ul><li>Lichen map treatment</li><li>Night survey treatment</li><li>Quiet waiting-card dot</li></ul>
+          <a class="button primary full" id="buy-link" href="https://api.sociobot.in/api/v1/products/focus-resume-card/checkout">Buy Plus — $9 once</a>
+          <p class="fine-print">Sociobot/Dodo is the merchant of record and handles checkout and refunds.</p>
+          <button class="restore-toggle" id="restore-toggle" type="button" aria-expanded="false" aria-controls="restore-form">Restore a purchase</button>
+          <form id="restore-form" hidden>
+            <label for="license-input">License token</label>
+            <div><input id="license-input" type="text" autocomplete="off" spellcheck="false" /><button type="submit">Verify</button></div>
+            <p id="license-message" role="status" aria-live="polite"></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="install" id="install" aria-labelledby="install-title">
+        <div class="section-intro"><p class="eyebrow">Install from the package</p><h2 id="install-title">Pin the trail marker.</h2><p>The factory publishes the store build later. This signed-off v1 package can be loaded locally now.</p></div>
+        <ol>
+          <li><span>1</span><p><a href="/downloads/focus-resume-card.zip" download>Download the extension ZIP</a> and extract it.</p></li>
+          <li><span>2</span><p>Open <code>chrome://extensions</code> and turn on Developer mode.</p></li>
+          <li><span>3</span><p>Choose “Load unpacked,” select the extracted folder, then pin the marker.</p></li>
+        </ol>
+      </section>
+
+      <section class="closing" aria-labelledby="closing-title"><span class="closing-marker" aria-hidden="true"></span><p class="eyebrow">Leave the smallest useful note</p><h2 id="closing-title">Your future attention needs a bearing, not a briefing.</h2><a class="button primary" href="/downloads/focus-resume-card.zip" download>Download Focus Resume Card</a></section>
+    </main>
+
+    <footer>
+      <div><a class="wordmark" href="/"><span class="mark" aria-hidden="true"></span><span>Focus Resume Card</span></a><p>A local interruption-recovery utility from Param Factory.</p></div>
+      <nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-focus-resume-card">Source</a></nav>
+      <p class="disclosure">Topographic artwork is original AI-generated imagery created for this product. No analytics or tracking scripts.</p>
+    </footer>
+    <div class="offline-toast" id="offline-toast" role="status" hidden>Offline. The downloaded extension still works locally.</div>
+    <script type="module" src="/main.ts"></script>
+  </body>
+</html>
