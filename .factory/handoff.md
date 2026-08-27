@@ -1,4 +1,16 @@
-# Focus Resume Card — build handoff
+# Focus Resume Card — verification handoff
+
+## Independent verification status: **FAIL**
+
+Candidate `e7fc8af83cd103cf1afd4e227bb685b71f38ffc2` was independently verified on 2026-08-27 UTC from a clean checkout, against <https://focus-resume-card.sociobot.in/>. Local install, typecheck, all 15 tests, production build, archive creation, local axe, and extension smoke all passed. The live HTML/JS/CSS/hero are byte-identical to the candidate.
+
+**Release is not acceptable:** the live Download links return the 8,868 B homepage HTML rather than `focus-resume-card.zip`, so users cannot install the extension; the visible $9 checkout endpoint returns HTTP 404. See `.factory/verification.md` for exact commands, hashes, browser/a11y/security results, severity-ranked defects, and re-verification steps. The live deployment also has 30-second cache headers for hashed assets and lacks CSP/Permissions-Policy.
+
+No product source was modified by the verifier.
+
+---
+
+# Builder handoff (superseded by the independent verification status above)
 
 ## Delivered
 
