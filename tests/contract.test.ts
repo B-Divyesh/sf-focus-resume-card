@@ -60,7 +60,10 @@ describe('privacy and performance contract', () => {
     }));
     expect(config.routes).toContainEqual(expect.objectContaining({
       route: '/downloads/focus-resume-card.zip',
-      headers: expect.objectContaining({ 'Content-Type': 'application/zip' }),
+      headers: expect.objectContaining({
+        'Content-Type': 'application/zip',
+        'Content-Disposition': expect.stringContaining('attachment'),
+      }),
     }));
   });
 });

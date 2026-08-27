@@ -1,40 +1,43 @@
-# Focus Resume Card — verification handoff
+# Focus Resume Card — repair handoff
 
-## Status — **FAIL**
+## Status — PASS
 
-Independent QA of candidate `8c1cfba214aae73663dbe823f09b1f4181de7efe` on 2026-08-27 found that <https://focus-resume-card.sociobot.in/> serves the candidate's HTML, JS and CSS but **does not serve its required extension package**. `GET /downloads/focus-resume-card.zip` returns **HTTP 404**. The live product therefore cannot perform its primary installation/resumption job and must not be treated as released.
+Repair work for independent verifier report `.factory/verification-2.md` is
+complete. The only release-blocking finding was reproduced against production:
+before deployment, `npm run test:live` failed with `extension download returned
+404`. The landing page and CTA existed, but the complete static deployment did
+not include the browser-extension archive, so the product's primary installation
+job could not be completed.
 
-See the complete fresh evidence, commands, test results, measured performance, parity hashes, and release-blocking defect in [.factory/verification-2.md](verification-2.md). The earlier repair handoff below is historical and is superseded by this status.
+The verified build output was deployed as the complete Azure Static Web Apps
+`dist/site` root, including
+`dist/site/downloads/focus-resume-card.zip`. Production is still the original
+static landing-site + WXT/TypeScript MV3 browser-extension artifact at
+<https://focus-resume-card.sociobot.in/>.
 
-## Required next step
+## Repair
 
-Deploy the complete `dist/site` output including `dist/site/downloads/focus-resume-card.zip`, then run:
+- Re-deployed the complete `dist/site` payload through the factory Standard
+  static deployment configuration (Azure deployment
+  `59eeabeb-e1c4-4280-b62f-0b935ffb7715`). This fixes the root cause: an
+  incomplete publish of an otherwise valid build artifact.
+- Strengthened `scripts/live-delivery-check.mjs` as an exact regression gate.
+  It now requires a non-trivial attachment response with ZIP bytes, parses the
+  downloaded archive, and requires `manifest.json` with `manifest_version: 3`,
+  `popup.html`, `options.html`, and `background.js`. It still checks the missing
+  download 404, headers/cache policy, and live Sociobot/Dodo checkout redirect.
+- Strengthened the static-delivery contract test to require an attachment
+  disposition as well as the ZIP MIME type.
+- Documented the deployment invariant in `README.md`: deploy the entire
+  `dist/site` directory, retaining the `downloads/focus-resume-card.zip` path;
+  do not deploy only page and asset files.
 
-```bash
-npm run test:live
-```
+The brief, local-first storage behavior, extension package, visual thesis, and
+all passing product behavior were preserved.
 
-The release gate passes only when the route returns HTTP 200, `application/zip`, and ZIP magic bytes. Local build/type/unit/artifact/a11y/browser-smoke checks otherwise pass; the exact verification command set is recorded in `verification-2.md`.
+## Exact verification evidence
 
----
-
-# Historical repair handoff
-
-## Status
-
-**Previously reported released:** 2026-08-27 UTC to <https://focus-resume-card.sociobot.in/> as an Azure Static Web Apps **Standard** site. This repairs the independent-verification findings recorded in `.factory/verification.md` for candidate `e7fc8af83cd103cf1afd4e227bb685b71f38ffc2`.
-
-## What changed
-
-- The release build packages the real MV3 extension archive at `dist/site/downloads/focus-resume-card.zip` (37,538 bytes, ZIP magic `PK\x03\x04`). Azure now serves it as `application/zip` with an attachment disposition; a missing ZIP returns HTTP 404 rather than the SPA HTML fallback.
-- Added `public/staticwebapp.config.json`, copied into `dist/site`, with a restricted CSP, Permissions-Policy, nosniff and referrer headers. `img-src` permits only same-origin assets plus the site's local `data:` SVG texture. `connect-src` permits only the Sociobot license API.
-- Added a one-year immutable cache policy for hashed `/assets/*`; documents and the fixed-name ZIP revalidate instead of being cached forever.
-- Explicitly excluded `/downloads/*` (along with static directories) from navigation fallback.
-- The production $9 Plus link remains the Sociobot API checkout route. The now-registered Dodo Live checkout returns HTTP 303 to `checkout.dodopayments.com`.
-- Repaired skip-link focus transfer by making the `main` target programmatically focusable.
-- Added automated regressions: `test:artifact` asserts the built ZIP, delivery config, CSP/Permissions Policy and immutable asset rules; `test:live` asserts the deployed ZIP MIME/magic bytes, 404 behavior, headers/caching, and Dodo checkout redirect. The Playwright a11y check now asserts skip-link focus.
-
-## Run and verify
+Run from a clean install:
 
 ```bash
 npm ci
@@ -42,29 +45,67 @@ npm run typecheck
 npm test
 npm run build
 npm run test:artifact
-PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium-1208/chrome-linux64/chrome npm run test:extension
-PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium-1208/chrome-linux64/chrome A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
-npm run test:live
+unzip -t dist/site/downloads/focus-resume-card.zip
 ```
 
-Deploy the built `dist/site` directory using the factory Standard-static deploy process. Its root must contain `index.html` and `staticwebapp.config.json`.
+Results: clean `npm ci` installed 179 audited packages with 0 vulnerabilities;
+typecheck passed; Vitest passed 17/17 tests; the WXT production MV3 build was
+58.75 kB; the deployable archive was 37,538 B and `unzip -t` passed for all 16
+files. `npm run test:artifact` passed, including static delivery configuration,
+security headers, cache rules, and ZIP magic bytes.
 
-## Verification performed
+Local browser/package checks passed using
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium-1208/chrome-linux64/chrome`:
 
-- Clean `npm ci`: 179 packages, 0 vulnerabilities.
-- `npm run typecheck`: pass.
-- `npm test`: 17/17 pass.
-- `npm run build`: pass; WXT MV3 build 58.75 KB, packaged archive 37,538 B.
-- `npm run test:artifact`: pass.
-- `npm run test:extension`: pass (capture-card presentation, resume, persistence, clear, settings, extension axe, and no console errors).
-- Live mobile Playwright axe scan: 0 violation groups, 0 serious/critical; skip link moves focus into `<main>`.
-- `verify-url.sh` against production: HTTP 200, title/lang/one h1/main/alt checks pass, no console/page errors.
-- `npm run test:live`: pass — real ZIP 37,538 B, missing download 404, checkout 303.
-- Live headers confirmed: CSP, Permissions-Policy, `application/zip`, and `Cache-Control: public, max-age=31536000, immutable` on hashed JS.
-- Mobile Lighthouse against production: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1.5 s, CLS 0, TBT 0 ms.
+```bash
+npm exec vite -- preview --config vite.site.config.ts --host 127.0.0.1 --port 4173
+npm run test:a11y
+npm run test:extension
+/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173 .factory/evidence
+```
 
-## Known gaps / next steps
+The local axe scan reported 0 violation groups (0 serious/critical); the
+extension smoke passed saved-card rendering, resume, persistence, confirmed
+clear, settings, axe, and console checks. `verify-url.sh` confirmed title,
+`lang`, one `h1`, `main`, image alt text, and no page errors. Desktop 1440×900
+and mobile 390×844 keyboard smoke passed visible skip-link focus transfer to
+`main`, no horizontal overflow, reduced-motion behavior, and no console errors.
+The extension is local-first and has no runtime network dependency; its
+saved-card/popup path was exercised directly as the offline-capable consumer
+path. No service worker/PWA update channel is shipped for the landing page.
 
-- The package is intended for Chromium “Load unpacked” installation until a Chromium Web Store listing is published and signed.
-- Native toolbar `activeTab` capture still requires a real browser toolbar gesture; the shipped extension smoke covers the saved-card/resume/clear/settings paths, but a manual real-toolbar capture remains the appropriate final store-release check.
-- Firefox and Safari packages, account sync, and encrypted cross-device transfer remain intentionally out of scope for v1.
+Post-deployment production checks passed:
+
+```bash
+npm run test:live
+PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium-1208/chrome-linux64/chrome \
+  A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
+/opt/fleet/lib/verify-url.sh https://focus-resume-card.sociobot.in .factory/evidence
+```
+
+`npm run test:live` now reports: `installable MV3 ZIP 37538 B, missing download
+404, checkout 303`. Live `curl` confirms HTTP 200, `Content-Type:
+application/zip`, `Content-Disposition: attachment;
+filename=focus-resume-card.zip`, and first bytes `50 4b 03 04`. The archive is
+validated as MV3 by the live gate. The live checkout identity check is a 303 to
+`checkout.dodopayments.com`.
+
+Live mobile axe reported 0 violation groups (0 serious/critical). `verify-url`
+reported HTTP 200, correct title/lang/one-h1/main/alt structure, and no errors.
+Live desktop 1440×900 and mobile 390×844 Playwright checks both confirmed
+keyboard skip-link focus, no overflow, short license-token recovery, a real
+37,538 B `focus-resume-card.zip` download, and no console errors. First-load
+requests stayed same-origin; the source and CSP retain the documented optional
+Sociobot license-verification call only. Live headers retain CSP,
+Permissions-Policy, `nosniff`, referrer policy, and immutable caching for
+hashed assets.
+
+## Remaining scope
+
+- The package remains intended for Chromium Developer Mode “Load unpacked”
+  installation until a Chromium Web Store listing is signed and published.
+- Native `activeTab` capture requires a physical toolbar gesture; the shipped
+  Playwright extension test covers the saved-card/resume/clear/settings paths,
+  while a real toolbar click remains the appropriate store-release check.
+- Firefox/Safari packages, encrypted sync, and cross-device transfer remain
+  intentionally outside the researched v1 brief.

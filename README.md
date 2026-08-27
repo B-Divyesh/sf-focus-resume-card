@@ -59,6 +59,12 @@ After deployment, verify the production download, headers, immutable assets, mis
 npm run test:live
 ```
 
+Factory deployment must upload the complete `dist/site` directory (not only the
+HTML and `assets` directories). In particular, keep
+`dist/site/downloads/focus-resume-card.zip` at that relative path; the live
+check opens the response as an MV3 archive and verifies its manifest, popup,
+options, and background files.
+
 ## Install the extension locally
 
 1. Run `npm run build` and unzip `dist/site/downloads/focus-resume-card.zip`.
