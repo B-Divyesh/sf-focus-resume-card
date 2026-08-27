@@ -45,8 +45,8 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium-1208/chrome-linux64/chr
 - `verify-url.sh`: passed; no page/console errors, one `<h1>`, `lang`, `<main>`, and image alt checks all clean at desktop and 390 px.
 - axe-core WCAG A/AA/2.1 AA scan at 390×844: 0 violation groups, 0 serious/critical issues.
 - Lighthouse mobile: Performance 100, Accessibility 100, Best Practices 100, SEO 100; LCP 1.7 s, CLS 0, total blocking time 0 ms. (Local production preview, throttled Lighthouse defaults.)
-- Initial landing payload: 2.86 KB JS (1.42 KB gzip), 13.3 KB CSS total (4.1 KB gzip), 125 KB hero WebP.
-- Extension package: 58.4 KB uncompressed; no remote runtime dependencies.
+- Initial landing payload: 2.94 KB JS (1.42 KB gzip), 13.3 KB CSS total (4.1 KB gzip), 125 KB hero WebP.
+- Extension package: 58.8 KB uncompressed; no remote runtime dependencies.
 
 ## Known gaps and factory next steps
 
