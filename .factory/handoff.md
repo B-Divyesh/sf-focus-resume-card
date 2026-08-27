@@ -98,7 +98,10 @@ keyboard skip-link focus, no overflow, short license-token recovery, a real
 requests stayed same-origin; the source and CSP retain the documented optional
 Sociobot license-verification call only. Live headers retain CSP,
 Permissions-Policy, `nosniff`, referrer policy, and immutable caching for
-hashed assets.
+hashed assets. A fresh production Lighthouse run (mobile defaults) scored
+Performance 100, Accessibility 100, Best Practices 100, and SEO 100; LCP was
+1.5 s, CLS 0, and total blocking time 30 ms. The JSON evidence is retained at
+`.factory/evidence/lighthouse-live.json` (ignored from source control).
 
 ## Remaining scope
 
