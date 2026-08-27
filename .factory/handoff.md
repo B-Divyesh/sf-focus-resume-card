@@ -1,21 +1,22 @@
-# Focus Resume Card — repair handoff
+# Focus Resume Card — verification handoff
 
-## Status — PASS
+## Status — FAIL
 
-Repair work for independent verifier report `.factory/verification-2.md` is
-complete. The only release-blocking finding was reproduced against production:
-before deployment, `npm run test:live` failed with `extension download returned
-404`. The landing page and CTA existed, but the complete static deployment did
-not include the browser-extension archive, so the product's primary installation
-job could not be completed.
+Candidate `4456db6905c6b603187d1aef44821878362046a7` is locally buildable and
+its landing-page shell is live, but the deployment is not releasable. Fresh
+verification on 2026-08-27 found that the only installable artifact,
+<https://focus-resume-card.sociobot.in/downloads/focus-resume-card.zip>,
+returns HTTP 404. The Download CTA therefore cannot install the browser
+extension or deliver the core local checkpoint workflow. This conclusion
+supersedes the historical repair claims below.
 
-The verified build output was deployed as the complete Azure Static Web Apps
-`dist/site` root, including
-`dist/site/downloads/focus-resume-card.zip`. Production is still the original
-static landing-site + WXT/TypeScript MV3 browser-extension artifact at
-<https://focus-resume-card.sociobot.in/>.
+See `.factory/verification-3.md` for fresh, exact evidence: clean install,
+typecheck, 17/17 tests, production build, archive validation, extension smoke,
+desktop/mobile keyboard and focus checks, local/live axe, privacy/security,
+Lighthouse 100/100, and byte parity for the deployed shell all pass. The
+production archive remains the P1 release blocker.
 
-## Repair
+## Historical repair record (superseded)
 
 - Re-deployed the complete `dist/site` payload through the factory Standard
   static deployment configuration (Azure deployment
@@ -102,6 +103,14 @@ hashed assets. A fresh production Lighthouse run (mobile defaults) scored
 Performance 100, Accessibility 100, Best Practices 100, and SEO 100; LCP was
 1.5 s, CLS 0, and total blocking time 30 ms. The JSON evidence is retained at
 `.factory/evidence/lighthouse-live.json` (ignored from source control).
+
+## Current release condition
+
+Deploy the entire generated `dist/site` directory, including
+`downloads/focus-resume-card.zip`, to the static deployment root. Then rerun
+`npm run test:live`; it must confirm HTTP 200, ZIP bytes, attachment disposition,
+and MV3 manifest contents before this handoff can change to PASS. No product
+code was modified by the verifier.
 
 ## Remaining scope
 
