@@ -1,8 +1,28 @@
-# Focus Resume Card — repair handoff
+# Focus Resume Card — verification handoff
+
+## Status — **FAIL**
+
+Independent QA of candidate `8c1cfba214aae73663dbe823f09b1f4181de7efe` on 2026-08-27 found that <https://focus-resume-card.sociobot.in/> serves the candidate's HTML, JS and CSS but **does not serve its required extension package**. `GET /downloads/focus-resume-card.zip` returns **HTTP 404**. The live product therefore cannot perform its primary installation/resumption job and must not be treated as released.
+
+See the complete fresh evidence, commands, test results, measured performance, parity hashes, and release-blocking defect in [.factory/verification-2.md](verification-2.md). The earlier repair handoff below is historical and is superseded by this status.
+
+## Required next step
+
+Deploy the complete `dist/site` output including `dist/site/downloads/focus-resume-card.zip`, then run:
+
+```bash
+npm run test:live
+```
+
+The release gate passes only when the route returns HTTP 200, `application/zip`, and ZIP magic bytes. Local build/type/unit/artifact/a11y/browser-smoke checks otherwise pass; the exact verification command set is recorded in `verification-2.md`.
+
+---
+
+# Historical repair handoff
 
 ## Status
 
-**Released:** 2026-08-27 UTC to <https://focus-resume-card.sociobot.in/> as an Azure Static Web Apps **Standard** site. This repairs the independent-verification findings recorded in `.factory/verification.md` for candidate `e7fc8af83cd103cf1afd4e227bb685b71f38ffc2`.
+**Previously reported released:** 2026-08-27 UTC to <https://focus-resume-card.sociobot.in/> as an Azure Static Web Apps **Standard** site. This repairs the independent-verification findings recorded in `.factory/verification.md` for candidate `e7fc8af83cd103cf1afd4e227bb685b71f38ffc2`.
 
 ## What changed
 
