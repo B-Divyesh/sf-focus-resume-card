@@ -56,6 +56,7 @@ h3 { font-size:23px; line-height:1.15; }
 .demo-card::before { content:""; position:absolute; right:-45px; top:-45px; width:110px; height:110px; border:1px solid #c7bfa5; border-radius:50%; box-shadow:0 0 0 11px #fffdf4,0 0 0 12px #c7bfa5,0 0 0 23px #fffdf4,0 0 0 24px #c7bfa5; }
 .coordinate { position:relative; display:flex; justify-content:space-between; margin-bottom:32px; color:#53645e; font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
 .demo-action { display:grid; grid-template-columns:20px 1fr; gap:12px; align-items:start; }
+.demo-card .eyebrow { color:#53645e; }
 .demo-action .waypoint { margin-top:5px; box-shadow:0 0 0 1px #b84a32; }
 .demo-action h3 { margin:0; font-size:31px; }
 .demo-card dl { margin:24px 0; border-top:1px dashed #c7bfa5; }

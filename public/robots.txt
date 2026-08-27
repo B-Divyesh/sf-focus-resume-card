@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://focus-resume-card.sociobot.in/sitemap.xml
