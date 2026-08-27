@@ -39,4 +39,23 @@ describe('privacy and performance contract', () => {
     expect(model).toContain('quietBadge: false');
     expect(model).toContain("focusStartedAt: null");
   });
+
+  it('ships Azure delivery rules for real downloads and hardened static responses', async () => {
+    const config = JSON.parse(await readFile('public/staticwebapp.config.json', 'utf8')) as {
+      navigationFallback?: { exclude?: string[] };
+      globalHeaders?: Record<string, string>;
+      routes?: Array<{ route?: string; headers?: Record<string, string> }>;
+    };
+    expect(config.navigationFallback?.exclude).toContain('/downloads/*');
+    expect(config.globalHeaders?.['Content-Security-Policy']).toContain("default-src 'self'");
+    expect(config.globalHeaders?.['Permissions-Policy']).toContain('camera=()');
+    expect(config.routes).toContainEqual(expect.objectContaining({
+      route: '/assets/*',
+      headers: expect.objectContaining({ 'Cache-Control': expect.stringContaining('immutable') }),
+    }));
+    expect(config.routes).toContainEqual(expect.objectContaining({
+      route: '/downloads/focus-resume-card.zip',
+      headers: expect.objectContaining({ 'Content-Type': 'application/zip' }),
+    }));
+  });
 });
