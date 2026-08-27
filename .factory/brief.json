@@ -1,0 +1,12 @@
+{
+  "slug": "focus-resume-card",
+  "title": "Focus Resume Card",
+  "territory": "utilities",
+  "user": "Developers with ADHD who need to resume an interrupted task from a small, concrete next action instead of rebuilding context from tabs, chat, and an open-ended task list.",
+  "smallest_useful_product": "A local browser extension that makes a one-card checkpoint containing current URL, selected text, optional screenshot, elapsed focus block, and a required five-to-twelve-word next action; reopening presents only that card before tabs.",
+  "success_measure": "Over two weeks, at least half of pilot users resume 70% of saved cards within two minutes without reopening more than three unrelated tabs.",
+  "artifact_class": "browser-extension",
+  "monetization": "one-time — the personal local workflow should work without an account; optional encrypted sync can be later.",
+  "constraints": "Store cards locally and allow redaction of page title/selection; never market as treatment; make all reminders opt-in and quiet by default.",
+  "non_goals": ["task management", "time surveillance", "gamification", "LLM-generated plans"]
+}
