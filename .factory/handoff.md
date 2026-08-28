@@ -1,6 +1,6 @@
 # Focus Resume Card — repair handoff
 
-## Status: ready for static deployment verification
+## Status: deployed and verified
 
 This repair addresses the independent verifier's candidate
 `952f3f8f94767aba7890a775efe18e15a68852a7`.
@@ -58,10 +58,23 @@ shell, axe, and console errors.
 
 ## Deployment
 
-Deploy the complete `dist/site` directory as the static root. It includes
-`downloads/focus-resume-card.zip`, `/demo`, legal pages, and `404.html`.
-After the pushed deployment settles, run `npm run test:live` and live
-`npm run test:a11y`; update this handoff with the resulting SHA/parity evidence.
+Commit `1bba8da` was pushed to `main` and `dist/site` was deployed to the
+`sf-focus-resume-card` Azure Static Web App production environment. The custom
+origin now serves the new headline and `/demo` with HTTP 200.
+
+```text
+npm run test:live                                      PASS
+  17 release files byte-match production
+  MV3 ZIP: 37,582 B; application/zip attachment
+  genuine document/download 404s; checkout 303
+A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y  PASS
+/opt/fleet/lib/verify-url.sh live                      PASS
+  200; title/lang/one h1/main/alts; no console/page errors
+```
+
+The full Static Web Apps config, including the package download headers,
+security policy, `/demo` route, and the 404 response override, was uploaded
+with the release. The deployment artifact remains exactly `dist/site`.
 
 ## Known boundary
 
