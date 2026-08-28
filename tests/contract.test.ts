@@ -22,9 +22,11 @@ describe('document accessibility contract', () => {
     expect(images.every((image) => /\balt="[^"]*"/u.test(image))).toBe(true);
   });
 
-  it('makes the landing page skip-link target focusable', async () => {
-    const html = await readFile('site/index.html', 'utf8');
-    expect(html).toMatch(/<main id="main" tabindex="-1">/u);
+  it('makes every skip-link target programmatically focusable', async () => {
+    for (const page of pages) {
+      const html = await readFile(page, 'utf8');
+      expect(html, page).toMatch(/<main\b[^>]*\bid="main"[^>]*\btabindex="-1"|<main\b[^>]*\btabindex="-1"[^>]*\bid="main"/u);
+    }
   });
 });
 
@@ -47,11 +49,11 @@ describe('privacy and performance contract', () => {
 
   it('ships Azure delivery rules for real downloads and hardened static responses', async () => {
     const config = JSON.parse(await readFile('public/staticwebapp.config.json', 'utf8')) as {
-      navigationFallback?: { exclude?: string[] };
+      navigationFallback?: unknown;
       globalHeaders?: Record<string, string>;
       routes?: Array<{ route?: string; headers?: Record<string, string> }>;
     };
-    expect(config.navigationFallback?.exclude).toContain('/downloads/*');
+    expect(config.navigationFallback).toBeUndefined();
     expect(config.globalHeaders?.['Content-Security-Policy']).toContain("default-src 'self'");
     expect(config.globalHeaders?.['Permissions-Policy']).toContain('camera=()');
     expect(config.routes).toContainEqual(expect.objectContaining({

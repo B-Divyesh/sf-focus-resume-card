@@ -1,13 +1,4 @@
 {
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": [
-      "/assets/*",
-      "/downloads/*",
-      "/illustrations/*",
-      "/*.{css,js,png,jpg,jpeg,svg,webp,ico,woff2,json,txt,xml,wasm}"
-    ]
-  },
   "globalHeaders": {
     "Cache-Control": "public, max-age=0, must-revalidate",
     "Content-Security-Policy": "default-src 'self'; base-uri 'self'; connect-src 'self' https://api.sociobot.in; font-src 'self'; form-action 'self'; frame-ancestors 'none'; img-src 'self' data:; object-src 'none'; script-src 'self'; style-src 'self'; upgrade-insecure-requests",

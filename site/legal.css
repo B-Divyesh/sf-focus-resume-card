@@ -4,4 +4,5 @@
 .legal-page section { margin:0; padding:36px 0; border-top:1px solid var(--contour); }
 .legal-page section h2 { font-size:30px; }
 .legal-page section p { max-width:68ch; color:var(--muted); }
+.legal-page section a { display:inline-flex; min-height:44px; align-items:center; vertical-align:middle; }
 @media (max-width:620px) { .legal-page { margin:64px auto 96px; } .legal-lede { margin-bottom:52px; } }
