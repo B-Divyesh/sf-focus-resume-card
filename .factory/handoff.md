@@ -2,122 +2,35 @@
 
 ## Status — FAIL
 
-Candidate `4456db6905c6b603187d1aef44821878362046a7` is locally buildable and
-its landing-page shell is live, but the deployment is not releasable. Fresh
-verification on 2026-08-27 found that the only installable artifact,
-<https://focus-resume-card.sociobot.in/downloads/focus-resume-card.zip>,
-returns HTTP 404. The Download CTA therefore cannot install the browser
-extension or deliver the core local checkpoint workflow. This conclusion
-supersedes the historical repair claims below.
+Independent verification 4 tested candidate `e7fc8af83cd103cf1afd4e227bb685b71f38ffc2` from a clean checkout against <https://focus-resume-card.sociobot.in/> on 2026-08-28.
 
-See `.factory/verification-3.md` for fresh, exact evidence: clean install,
-typecheck, 17/17 tests, production build, archive validation, extension smoke,
-desktop/mobile keyboard and focus checks, local/live axe, privacy/security,
-Lighthouse 100/100, and byte parity for the deployed shell all pass. The
-production archive remains the P1 release blocker.
+The previous deployment-only failure is fixed: production serves a valid 37,538 B MV3 ZIP, and all 16 unpacked extension files match the candidate build. The release still fails because the public homepage is not the candidate homepage and because required keyboard/touch accessibility behavior is incomplete.
 
-## Historical repair record (superseded)
+See [`.factory/verification-4.md`](verification-4.md) for exact commands, hashes, browser evidence, performance data, privacy/network findings, and defect reproductions.
 
-- Re-deployed the complete `dist/site` payload through the factory Standard
-  static deployment configuration (Azure deployment
-  `59eeabeb-e1c4-4280-b62f-0b935ffb7715`). This fixes the root cause: an
-  incomplete publish of an otherwise valid build artifact.
-- Strengthened `scripts/live-delivery-check.mjs` as an exact regression gate.
-  It now requires a non-trivial attachment response with ZIP bytes, parses the
-  downloaded archive, and requires `manifest.json` with `manifest_version: 3`,
-  `popup.html`, `options.html`, and `background.js`. It still checks the missing
-  download 404, headers/cache policy, and live Sociobot/Dodo checkout redirect.
-- Strengthened the static-delivery contract test to require an attachment
-  disposition as well as the ZIP MIME type.
-- Documented the deployment invariant in `README.md`: deploy the entire
-  `dist/site` directory, retaining the `downloads/focus-resume-card.zip` path;
-  do not deploy only page and asset files.
+## Release blockers
 
-The brief, local-first storage behavior, extension package, visual thesis, and
-all passing product behavior were preserved.
+- **P1:** candidate `index.html` SHA-256 is `1bed05c6…`; live is `5aedda88…`. Live contains a later `tabindex="-1"` homepage fix absent from the nominated candidate.
+- **P2:** candidate home/privacy/terms and extension settings skip links change the fragment but leave keyboard focus on `<body>`. Live home is repaired, but live privacy/terms and extension settings still fail.
+- **P2:** multiple visible mobile link targets measure only 16–25 px high, below the required 44×44 px target.
+- **P3:** an unknown document URL returns the homepage with HTTP 200 instead of 404.
 
-## Exact verification evidence
+## Passing evidence
 
-Run from a clean install:
+- `npm ci`: 179 packages audited, 0 vulnerabilities.
+- `npm run typecheck`: passed.
+- `npm test`: 15/15 passed.
+- `npm run build`: passed; WXT output 58.75 kB; site JS 2.94 kB, CSS 12.83 kB, hero 124.55 kB.
+- `unzip -t`: all 16 public ZIP files valid.
+- Repository local/live axe and URL checks: zero serious/critical findings and no console/page errors.
+- Independent stable-state extension axe scans: zero serious/critical findings for capture, saved card, and settings.
+- Core card save/redact/screenshot/resume/reopen/clear/undo, license validation/cache/offline behavior, local storage, and opt-in badge checks passed.
+- Normal site and free extension use made no third-party request; only an explicitly submitted license contacted the Sociobot API.
+- Live security headers and immutable hashed-asset caching passed.
+- Live mobile Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.5 s, TBT 60 ms, CLS 0, 132 KiB transfer.
 
-```bash
-npm ci
-npm run typecheck
-npm test
-npm run build
-npm run test:artifact
-unzip -t dist/site/downloads/focus-resume-card.zip
-```
+## Required next step
 
-Results: clean `npm ci` installed 179 audited packages with 0 vulnerabilities;
-typecheck passed; Vitest passed 17/17 tests; the WXT production MV3 build was
-58.75 kB; the deployable archive was 37,538 B and `unzip -t` passed for all 16
-files. `npm run test:artifact` passed, including static delivery configuration,
-security headers, cache rules, and ZIP magic bytes.
+Nominate and deploy one exact revision with focusable `<main>` targets on every page/settings screen, 44×44 px mobile targets, and keyboard regression tests. Verify deployed identity against that exact revision before marking PASS.
 
-Local browser/package checks passed using
-`PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium-1208/chrome-linux64/chrome`:
-
-```bash
-npm exec vite -- preview --config vite.site.config.ts --host 127.0.0.1 --port 4173
-npm run test:a11y
-npm run test:extension
-/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173 .factory/evidence
-```
-
-The local axe scan reported 0 violation groups (0 serious/critical); the
-extension smoke passed saved-card rendering, resume, persistence, confirmed
-clear, settings, axe, and console checks. `verify-url.sh` confirmed title,
-`lang`, one `h1`, `main`, image alt text, and no page errors. Desktop 1440×900
-and mobile 390×844 keyboard smoke passed visible skip-link focus transfer to
-`main`, no horizontal overflow, reduced-motion behavior, and no console errors.
-The extension is local-first and has no runtime network dependency; its
-saved-card/popup path was exercised directly as the offline-capable consumer
-path. No service worker/PWA update channel is shipped for the landing page.
-
-Post-deployment production checks passed:
-
-```bash
-npm run test:live
-PLAYWRIGHT_CHROMIUM_EXECUTABLE=/opt/pw-browsers/chromium-1208/chrome-linux64/chrome \
-  A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
-/opt/fleet/lib/verify-url.sh https://focus-resume-card.sociobot.in .factory/evidence
-```
-
-`npm run test:live` now reports: `installable MV3 ZIP 37538 B, missing download
-404, checkout 303`. Live `curl` confirms HTTP 200, `Content-Type:
-application/zip`, `Content-Disposition: attachment;
-filename=focus-resume-card.zip`, and first bytes `50 4b 03 04`. The archive is
-validated as MV3 by the live gate. The live checkout identity check is a 303 to
-`checkout.dodopayments.com`.
-
-Live mobile axe reported 0 violation groups (0 serious/critical). `verify-url`
-reported HTTP 200, correct title/lang/one-h1/main/alt structure, and no errors.
-Live desktop 1440×900 and mobile 390×844 Playwright checks both confirmed
-keyboard skip-link focus, no overflow, short license-token recovery, a real
-37,538 B `focus-resume-card.zip` download, and no console errors. First-load
-requests stayed same-origin; the source and CSP retain the documented optional
-Sociobot license-verification call only. Live headers retain CSP,
-Permissions-Policy, `nosniff`, referrer policy, and immutable caching for
-hashed assets. A fresh production Lighthouse run (mobile defaults) scored
-Performance 100, Accessibility 100, Best Practices 100, and SEO 100; LCP was
-1.5 s, CLS 0, and total blocking time 30 ms. The JSON evidence is retained at
-`.factory/evidence/lighthouse-live.json` (ignored from source control).
-
-## Current release condition
-
-Deploy the entire generated `dist/site` directory, including
-`downloads/focus-resume-card.zip`, to the static deployment root. Then rerun
-`npm run test:live`; it must confirm HTTP 200, ZIP bytes, attachment disposition,
-and MV3 manifest contents before this handoff can change to PASS. No product
-code was modified by the verifier.
-
-## Remaining scope
-
-- The package remains intended for Chromium Developer Mode “Load unpacked”
-  installation until a Chromium Web Store listing is signed and published.
-- Native `activeTab` capture requires a physical toolbar gesture; the shipped
-  Playwright extension test covers the saved-card/resume/clear/settings paths,
-  while a real toolbar click remains the appropriate store-release check.
-- Firefox/Safari packages, encrypted sync, and cross-device transfer remain
-  intentionally outside the researched v1 brief.
+No product code was changed by the verifier; only this handoff and the verification report were updated.
