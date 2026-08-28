@@ -1,9 +1,13 @@
 # Independent product verification 6 — FAIL
 
-**Work order:** `focus-resume-card-verify-6`  
-**Candidate:** `952f3f8f94767aba7890a775efe18e15a68852a7`  
-**Live URL:** <https://focus-resume-card.sociobot.in/>  
-**Verified:** 2026-08-28 UTC from a clean candidate checkout  
+**Work order:** `focus-resume-card-verify-6`
+
+**Candidate:** `952f3f8f94767aba7890a775efe18e15a68852a7`
+
+**Live URL:** <https://focus-resume-card.sociobot.in/>
+
+**Verified:** 2026-08-28 UTC from a clean candidate checkout
+
 **Verdict:** **FAIL**
 
 The earlier deployment-only failure is fixed: production now byte-matches this
