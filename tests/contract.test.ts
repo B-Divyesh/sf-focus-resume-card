@@ -69,3 +69,23 @@ describe('privacy and performance contract', () => {
     }));
   });
 });
+
+describe('billing gateway contract', () => {
+  it('documents a server-side 429 allowance for checkout and license verification', async () => {
+    const contract = JSON.parse(await readFile('.factory/gateway-rate-limit-contract.json', 'utf8')) as {
+      product: string;
+      scope: string;
+      windowSeconds: number;
+      response: { status: number; retryAfter: string };
+      routes: Array<{ id: string; allowance: number; path: string }>;
+    };
+    expect(contract.product).toBe('focus-resume-card');
+    expect(contract.scope).toContain('client IP');
+    expect(contract.windowSeconds).toBe(60);
+    expect(contract.response).toMatchObject({ status: 429, retryAfter: expect.stringContaining('positive integer') });
+    expect(contract.routes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'license-verify', allowance: 12, path: '/products/focus-resume-card/verify' }),
+      expect.objectContaining({ id: 'checkout', allowance: 6, path: '/products/focus-resume-card/checkout' }),
+    ]));
+  });
+});

@@ -37,6 +37,7 @@ npm run typecheck
 npm test
 npm run build
 npm run test:artifact
+npm run test:package
 ```
 
 `npm run build` is the reproducible release command. It creates the unpacked extension in `.output/chrome-mv3`, builds the deployable static site in `dist/site`, and places the installable ZIP at `dist/site/downloads/focus-resume-card.zip`. The static deployment root is exactly `dist/site`.
@@ -64,6 +65,19 @@ HTML and `assets` directories). In particular, keep
 `dist/site/downloads/focus-resume-card.zip` at that relative path; the live
 check opens the response as an MV3 archive and verifies its manifest, popup,
 options, and background files.
+
+The shared billing gateway requires this production rate-limit configuration:
+12 license checks and 6 checkout requests per client/product each minute. The
+next request must return HTTP 429 with `Retry-After`; the direct, non-mocked
+production probe is:
+
+```bash
+npm run test:gateway
+```
+
+See [the gateway contract](docs/gateway-rate-limit-contract.md) for the
+allowance, response details, and current production-proof status. Do not claim
+this gateway control is live until that probe passes.
 
 ## Install the extension locally
 

@@ -11,6 +11,8 @@
     "package:extension": "node scripts/package-extension.mjs",
     "build": "npm run clean && npm run build:extension && npm run build:site && npm run package:extension",
     "test:artifact": "node scripts/build-artifact-check.mjs",
+    "test:package": "node scripts/reproducible-package-check.mjs",
+    "test:gateway": "node scripts/gateway-rate-limit-check.mjs",
     "test:live": "node scripts/live-delivery-check.mjs",
     "clean": "node scripts/clean.mjs",
     "test": "vitest run",

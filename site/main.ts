@@ -1,3 +1,5 @@
+import { rateLimitMessage, retryAfterSeconds } from '../src/shared/rate-limit';
+
 const API_BASE = 'https://api.sociobot.in/api/v1';
 const PRODUCT_SLUG = 'focus-resume-card';
 const LICENSE_KEY = `sb_license:${PRODUCT_SLUG}`;
@@ -10,6 +12,7 @@ const restoreForm = document.querySelector<HTMLFormElement>('#restore-form');
 const licenseInput = document.querySelector<HTMLInputElement>('#license-input');
 const licenseMessage = document.querySelector<HTMLElement>('#license-message');
 const offlineToast = document.querySelector<HTMLElement>('#offline-toast');
+let licenseRetryAt = 0;
 
 function setLicenseMessage(message: string, valid = false) {
   if (!licenseMessage) return;
@@ -25,9 +28,19 @@ async function verifyLicense(token: string, force = false) {
     else setLicenseMessage('License no longer active. You can keep using every free recovery feature.');
     return;
   }
+  if (Date.now() < licenseRetryAt) {
+    setLicenseMessage(rateLimitMessage(Math.ceil((licenseRetryAt - Date.now()) / 1000)));
+    return;
+  }
   setLicenseMessage('Verifying license…');
   try {
     const response = await fetch(`${API_BASE}/products/${PRODUCT_SLUG}/verify?license=${encodeURIComponent(token)}`, { headers: { Accept: 'application/json' } });
+    if (response.status === 429) {
+      const seconds = retryAfterSeconds(response.headers.get('Retry-After'));
+      licenseRetryAt = Date.now() + seconds * 1000;
+      setLicenseMessage(rateLimitMessage(seconds, Boolean(cache?.token === token && cache.valid)), Boolean(cache?.token === token && cache.valid));
+      return;
+    }
     if (!response.ok) throw new Error('unavailable');
     const result = await response.json() as LicenseResult;
     localStorage.setItem(CACHE_KEY, JSON.stringify({ token, valid: result.valid, checkedAt: Date.now(), reason: result.reason }));

@@ -1,5 +1,6 @@
 import './style.css';
 import { CARD_KEY, DEFAULT_PREFERENCES, LICENSE_CACHE_KEY, LICENSE_KEY, PREFS_KEY, isLicenseFresh, type LicenseCache, type Theme } from '../../shared/model';
+import { rateLimitMessage, retryAfterSeconds } from '../../shared/rate-limit';
 import { getPreferences, setPreferences } from '../../shared/storage';
 
 const API_BASE = 'https://api.sociobot.in/api/v1';
@@ -9,6 +10,7 @@ const licenseError = getElement<HTMLElement>('license-error');
 const saveStatus = getElement<HTMLElement>('save-status');
 const badgeInput = getElement<HTMLInputElement>('quiet-badge');
 let unlocked = false;
+let licenseRetryAt = 0;
 
 function getElement<T extends HTMLElement>(id: string): T {
   const element = document.getElementById(id);
@@ -49,9 +51,19 @@ async function verifyLicense(token: string, force = false) {
     applyUnlockedState(true, 'Offline — using the last valid license check.');
     return;
   }
+  if (Date.now() < licenseRetryAt) {
+    licenseState.textContent = rateLimitMessage(Math.ceil((licenseRetryAt - Date.now()) / 1000));
+    return;
+  }
   licenseState.textContent = 'Verifying license…';
   try {
     const response = await fetch(`${API_BASE}/products/${PRODUCT_SLUG}/verify?license=${encodeURIComponent(token)}`, { headers: { Accept: 'application/json' } });
+    if (response.status === 429) {
+      const seconds = retryAfterSeconds(response.headers.get('Retry-After'));
+      licenseRetryAt = Date.now() + seconds * 1000;
+      applyUnlockedState(Boolean(cache?.token === token && cache.valid), rateLimitMessage(seconds, Boolean(cache?.token === token && cache.valid)));
+      return;
+    }
     if (!response.ok) throw new Error('Verification service unavailable.');
     const result = await response.json() as { valid: boolean; reason?: string };
     const nextCache: LicenseCache = { token, valid: result.valid, checkedAt: Date.now(), reason: result.reason };
