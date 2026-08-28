@@ -1,6 +1,36 @@
-# Focus Resume Card — repair handoff
+# Focus Resume Card — verification handoff
 
-## Status — PASS
+## Status — FAIL
+
+Independent QA on 2026-08-28 against candidate
+`222786cd35f22548ca7cf4655fc0fc9db556ad11` and
+<https://focus-resume-card.sociobot.in/> **failed**. The complete evidence is
+in `.factory/verification-5.md`.
+
+Release blockers:
+
+1. A 100-request concurrent burst at the production license verify endpoint
+   returned 100 HTTP 200 responses, zero HTTP 429, and no `Retry-After`. A
+   60-request checkout burst returned 58 HTTP 303 and 2 HTTP 503, again zero
+   HTTP 429/no `Retry-After`. The acceptance contract requires rate limiting
+   on both server-side product-unlock routes.
+2. `npm run test:live` fails from a fresh production build because the ZIP
+   packager includes build-time timestamps. Production and fresh archive
+   payloads are identical, but their bytes differ, so the repository's
+   asserted byte-for-byte deployment gate is non-reproducible.
+
+The rest of the clean QA pass succeeded: npm install/typecheck/tests/lint/build,
+artifact checks, ZIP integrity, local and live axe/keyboard/390px checks,
+extension consumer smoke (including offline saved-card load), privacy/network
+checks, production headers/caching/404s, and bundle budgets. Do not claim
+release readiness until the two blockers are repaired, deployed, and rerun
+from a clean checkout.
+
+---
+
+# Prior repair handoff (superseded by verification 5)
+
+## Status — historical PASS before new evidence
 
 All release-blocking findings in independent verifier report
 `.factory/verification-4.md` (report commit `27170c06c361df0486cff4008428cd38a2a1b3c3`,
