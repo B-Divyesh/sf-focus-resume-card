@@ -4,7 +4,8 @@
 
 The repository-owned findings from independent verification commit
 `19348dbba96c1869657f8ac03a3732c1221d8916` are repaired and covered by
-regressions. The static product is buildable and ready to deploy.
+regressions. Repair commit `df1842e` was pushed and deployed to the production
+custom domain.
 
 Release acceptance remains blocked by one external factory-service condition:
 the shared Sociobot billing gateway does not enforce its documented request
@@ -96,12 +97,33 @@ Neither response had `Retry-After`. Product clients correctly handle a real
 must apply the contract at the trusted billing edge and rerun
 `npm run test:gateway` after a quiet 60-second window.
 
+## Production deployment evidence
+
+Azure Static Web Apps deployment
+`c1ceb0fc-0e55-4e57-b9c9-a9f3e0d5f36c` completed successfully on 2026-08-28
+UTC. The custom domain returned HTTPS 200.
+
+```text
+npm run test:live                  PASS — all 19 release files byte-match
+live extension ZIP                PASS — 37,550 B, application/zip, attachment
+live missing document/download    PASS — genuine 404 responses
+live checkout identity            PASS — 303 to checkout.dodopayments.com
+live npm run test:a11y            PASS — all routes, desktop and 390 px
+live verify-url.sh                PASS — no console/page errors
+live CSP/Permissions/HSTS         PASS
+live hashed-asset cache           PASS — max-age=31536000, immutable
+live npm run test:gateway         FAIL — external edge did not return 429
+```
+
+Live Lighthouse mobile: 100 Performance, 100 Accessibility, 100 Best
+Practices, and 100 SEO; FCP 0.9 s, LCP 1.5 s, TBT 0 ms, and CLS 0.
+
 ## Deploy and verify
 
-Deploy the complete `dist/site` directory:
+The complete `dist/site` directory is deployed. Re-run production verification
+with:
 
 ```bash
-/opt/fleet/lib/deploy-static.sh focus-resume-card dist/site
 npm run test:live
 A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
 /opt/fleet/lib/verify-url.sh https://focus-resume-card.sociobot.in .factory/evidence/verify-live
