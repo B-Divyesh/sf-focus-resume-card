@@ -12,7 +12,6 @@ const confirmTitle = requireElement<HTMLElement>('confirm-title');
 const confirmCopy = requireElement<HTMLElement>('confirm-copy');
 const confirmAction = requireElement<HTMLButtonElement>('confirm-action');
 
-let activeCard: ResumeCard | null = null;
 let timerHandle: number | null = null;
 let pendingConfirm: (() => Promise<void>) | null = null;
 
@@ -81,7 +80,6 @@ dialog.addEventListener('close', () => {
 });
 
 function renderCard(card: ResumeCard) {
-  activeCard = card;
   const date = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(card.createdAt);
   cardView.innerHTML = `
     <article class="resume-card">
@@ -121,7 +119,7 @@ function renderCard(card: ResumeCard) {
     'Replace the current card?',
     `“${card.nextAction}” will be removed before the new marker is saved.`,
     'Replace card',
-    async () => { activeCard = null; await renderCapture(); },
+    async () => { await renderCapture(); },
   ));
   requireElement<HTMLButtonElement>('clear-button').addEventListener('click', () => openConfirmation(
     'Clear this trail marker?',
@@ -130,7 +128,6 @@ function renderCard(card: ResumeCard) {
     async () => {
       const cleared = card;
       await setCard(null);
-      activeCard = null;
       await renderCapture();
       setStatus('Card cleared.');
       const undo = document.createElement('button');
