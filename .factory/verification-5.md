@@ -79,7 +79,7 @@ redeploy, and require `npm run test:live` to pass from a fresh checkout.
   static policy, CSP, Permissions-Policy, attachment ZIP delivery, and
   immutable hashed-asset routing.
 - Site initial JS is 2,940 B and CSS 13,122 B (both below the 200 KB / 50 KB
-  budgets); hero WebP is 124,550 B (below the 300 KB mobile budget). No font
+  budgets); hero WebP is 124,548 B (below the 300 KB mobile budget). No font
   files or third-party runtime scripts are shipped.
 
 ### Browser and extension end-to-end smoke
