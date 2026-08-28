@@ -13,6 +13,18 @@ const viewports = [
 const evidence = {};
 const failures = [];
 
+function relativeLuminance(cssColor) {
+  const channels = cssColor.match(/[\d.]+/gu)?.slice(0, 3).map((value) => Number(value) / 255) ?? [];
+  if (channels.length !== 3) return Number.NaN;
+  const [red, green, blue] = channels.map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+}
+
+function contrastRatio(first, second) {
+  const values = [relativeLuminance(first), relativeLuminance(second)].sort((left, right) => right - left);
+  return (values[0] + 0.05) / (values[1] + 0.05);
+}
+
 for (const viewport of viewports) {
   const context = await browser.newContext({
     viewport: { width: viewport.width, height: viewport.height },
@@ -55,6 +67,22 @@ for (const viewport of viewports) {
     }));
     if (viewport.colorScheme === 'dark' && renderedPolicy.background !== 'rgb(23, 32, 29)') failures.push(`${viewport.name} ${route}: dark palette did not apply (${renderedPolicy.background})`);
     if (viewport.reducedMotion === 'reduce' && (renderedPolicy.scrollBehavior !== 'auto' || Number.parseFloat(renderedPolicy.transitionDuration) > 0.001)) failures.push(`${viewport.name} ${route}: reduced-motion policy did not apply (${JSON.stringify(renderedPolicy)})`);
+
+    const focusTarget = page.locator('a.button:visible, button:visible').first();
+    if (await focusTarget.count()) {
+      await focusTarget.focus();
+      const focusColors = await focusTarget.evaluate((element) => {
+        let background = 'rgba(0, 0, 0, 0)';
+        for (let node = element.parentElement; node; node = node.parentElement) {
+          const value = getComputedStyle(node).backgroundColor;
+          if (value !== 'rgba(0, 0, 0, 0)' && value !== 'transparent') { background = value; break; }
+        }
+        return { outline: getComputedStyle(element).outlineColor, background };
+      });
+      const focusContrast = contrastRatio(focusColors.outline, focusColors.background);
+      if (!Number.isFinite(focusContrast) || focusContrast < 3) failures.push(`${viewport.name} ${route}: focus indicator contrast ${focusContrast.toFixed(2)}:1 for ${focusColors.outline} on ${focusColors.background}`);
+      evidence[`${viewport.name}:${route}:focus`] = { ...focusColors, contrast: focusContrast };
+    }
 
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze();
     const serious = results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));

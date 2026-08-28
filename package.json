@@ -18,6 +18,8 @@
     "test:a11y": "node scripts/a11y-check.mjs",
     "test:extension": "node scripts/extension-smoke.mjs",
     "test:demo": "node scripts/demo-claims-check.mjs",
+    "test:claims": "npm run build:extension && node scripts/extension-claims-check.mjs",
+    "test:gateway": "node scripts/gateway-rate-limit-check.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "npm exec --yes oxlint -- src site scripts tests wxt.config.ts vite.site.config.ts",
     "check": "npm run typecheck && npm run lint && npm test && npm run build",

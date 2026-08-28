@@ -25,3 +25,4 @@ requireCondition(typeof config.globalHeaders?.['Content-Security-Policy'] === 's
 requireCondition(typeof config.globalHeaders?.['Permissions-Policy'] === 'string', 'Permissions-Policy header is required');
 
 console.log(`artifact: ZIP ${zipStat.size} B; Azure routes and security headers verified`);
+if (process.argv.join(' ').includes('@claim:download-package')) console.log('@claim:download-package pass');

@@ -14,7 +14,9 @@ describe('gateway Retry-After handling', () => {
     expect(retryAfterSeconds('soon', now)).toBe(DEFAULT_RETRY_AFTER_SECONDS);
   });
 
-  it('keeps the rate-limited state honest about the free workflow', () => {
+  it('@claim:license-rate-limit keeps the rate-limited state honest about the free workflow', () => {
+    expect(retryAfterSeconds('17')).toBe(17);
+    expect(retryAfterSeconds(null)).toBe(DEFAULT_RETRY_AFTER_SECONDS);
     expect(rateLimitMessage(1)).toBe('The license service is busy. Try again in 1 second. Your free recovery features still work.');
     expect(rateLimitMessage(2, true)).toBe('The license service is busy. Try again in 2 seconds. Plus remains available from your last valid check.');
   });

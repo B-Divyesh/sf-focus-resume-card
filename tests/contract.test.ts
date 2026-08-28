@@ -31,7 +31,7 @@ describe('document accessibility contract', () => {
 });
 
 describe('privacy and performance contract', () => {
-  it('uses no third-party runtime scripts or font CDNs', async () => {
+  it('@claim:no-runtime-third-parties uses no third-party runtime scripts or font CDNs', async () => {
     const html = await readFile('site/index.html', 'utf8');
     expect(html).not.toMatch(/<script[^>]+src="https?:/u);
     expect(html).not.toMatch(/fonts\.(googleapis|gstatic)/u);
@@ -84,14 +84,48 @@ describe('privacy and performance contract', () => {
     expect(demo).toContain('Demo — sample data, nothing is saved');
     expect(demoScript).toContain("demo:focus-resume-card:sample-card");
   });
+
+  it('ships route-specific social metadata and a 1200 by 630 preview', async () => {
+    for (const page of ['site/index.html', 'site/demo/index.html', 'site/privacy/index.html', 'site/terms/index.html', 'site/404.html']) {
+      const html = await readFile(page, 'utf8');
+      expect(html, page).toMatch(/<link rel="canonical"/u);
+      expect(html, page).toMatch(/property="og:url"/u);
+      expect(html, page).toContain('property="og:image:width" content="1200"');
+      expect(html, page).toContain('property="og:image:height" content="630"');
+      expect(html, page).toMatch(/name="twitter:title"/u);
+      expect(html, page).toMatch(/name="twitter:description"/u);
+      expect(html, page).toMatch(/name="twitter:image"/u);
+      expect(html, page).toContain('href="/apple-touch-icon.png"');
+    }
+    expect((await stat('public/illustrations/social-card.webp')).size).toBeGreaterThan(1000);
+    expect((await stat('public/apple-touch-icon.png')).size).toBeGreaterThan(1000);
+  });
+
+  it('uses one plain term for the saved card across product UI', async () => {
+    const files = ['src/entrypoints/popup/index.html', 'src/entrypoints/popup/main.ts', 'src/entrypoints/options/index.html', 'src/entrypoints/options/main.ts', 'wxt.config.ts'];
+    const copy = (await Promise.all(files.map((file) => readFile(file, 'utf8')))).join('\n');
+    expect(copy).not.toMatch(/trail marker|resume this trail|placing marker|trail restored|map room|waypoint 01|leave one marker|map appearance|map treatment|toolbar marker|cannot be marked|new marker/iu);
+  });
+
+  it('lists unique public claims with exact matching regression tags', async () => {
+    const claims = JSON.parse(await readFile('.factory/claims.json', 'utf8')) as Array<{ id: string; test: string }>;
+    expect(claims.length).toBeGreaterThanOrEqual(15);
+    expect(new Set(claims.map(({ id }) => id)).size).toBe(claims.length);
+    for (const claim of claims) expect(claim.test, claim.id).toContain(`@claim:${claim.id}`);
+  });
 });
 
 describe('billing response policy', () => {
-  it('keeps 429 handling in the local client rather than claiming control of the shared gateway', async () => {
+  it('documents the response policy and keeps 429 handling in both clients', async () => {
     const siteClient = await readFile('site/main.ts', 'utf8');
     const extensionClient = await readFile('src/entrypoints/options/main.ts', 'utf8');
     expect(siteClient).toContain("response.status === 429");
     expect(extensionClient).toContain("response.status === 429");
-    await expect(readFile('.factory/gateway-rate-limit-contract.json', 'utf8')).rejects.toThrow();
+    const contract = JSON.parse(await readFile('.factory/gateway-rate-limit-contract.json', 'utf8')) as { windowSeconds: number; routes: Array<{ id: string; allowance: number }> };
+    expect(contract.windowSeconds).toBe(60);
+    expect(contract.routes).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'license-verify', allowance: 12 }),
+      expect.objectContaining({ id: 'checkout', allowance: 6 }),
+    ]));
   });
 });

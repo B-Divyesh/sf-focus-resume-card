@@ -4,20 +4,125 @@
     "claim": "Try it with sample data",
     "where": "Landing page primary action and /demo",
     "test": "npm run test:demo -- --grep @claim:demo-sample-card",
-    "sandbox": "Fresh browser context opens /demo and observes a complete sample card before any setup."
+    "sandbox": "A fresh 390 px browser context opens /demo and sees a complete sample card before setup."
   },
   {
     "id": "demo-isolation",
-    "claim": "Demo — sample data, nothing is saved",
-    "where": "Persistent /demo banner",
+    "claim": "Demo — sample data, nothing is saved to real extension data",
+    "where": "/demo banner and README",
     "test": "npm run test:demo -- --grep @claim:demo-isolation",
-    "sandbox": "Fresh browser context resumes and resets the sample; only the demo:focus-resume-card storage key is written."
+    "sandbox": "A fresh context resumes and resets the sample; only the demo:focus-resume-card key is used."
   },
   {
     "id": "demo-local-data",
-    "claim": "Card data stays in your browser",
-    "where": "Landing-page facts and privacy section",
+    "claim": "The site loads no analytics, tracking, third-party scripts, fonts, or runtime CDNs",
+    "where": "Landing footer, privacy page, and README",
     "test": "npm run test:demo -- --grep @claim:demo-local-data",
-    "sandbox": "Fresh demo context records all requests through resume/reset; every request is same-origin and no card request is sent."
+    "sandbox": "A fresh demo flow records every request and requires all requests to stay same-origin."
+  },
+  {
+    "id": "extension-local-data",
+    "claim": "Card data stays in browser extension storage and is not sent over the network",
+    "where": "Landing page, privacy page, extension, and README",
+    "test": "npm run test:claims -- --grep @claim:extension-local-data",
+    "sandbox": "A clean installed MV3 profile writes a real card to chrome.storage.local, renders it, and records zero HTTP requests."
+  },
+  {
+    "id": "card-fields",
+    "claim": "A card keeps its saved page, optional title and selection, elapsed focus time, and next action",
+    "where": "Landing page, privacy page, extension, and README",
+    "test": "npm run test:claims -- --grep @claim:card-fields",
+    "sandbox": "A clean installed MV3 profile stores and renders every promised text field from one real extension card."
+  },
+  {
+    "id": "offline-card",
+    "claim": "A saved card remains available offline",
+    "where": "Extension offline state and README",
+    "test": "npm run test:claims -- --grep @claim:offline-card",
+    "sandbox": "A clean installed MV3 profile is taken offline before the popup loads; its stored card and offline state remain visible."
+  },
+  {
+    "id": "redaction",
+    "claim": "Page title and selected text can be omitted from a saved card",
+    "where": "Landing page, privacy page, extension, and README",
+    "test": "npm run test:claims -- --grep @claim:redaction",
+    "sandbox": "A real extension card with null title and selection renders 'Title hidden' and contains neither redacted value."
+  },
+  {
+    "id": "screenshot-card",
+    "claim": "A card can keep an optional screenshot locally",
+    "where": "Landing page, privacy page, extension, and README",
+    "test": "npm run test:claims -- --grep @claim:screenshot-card",
+    "sandbox": "A clean installed MV3 profile stores a data-URL screenshot on the card and renders that exact local image."
+  },
+  {
+    "id": "exact-page-resume",
+    "claim": "Resume opens the exact saved page",
+    "where": "Landing page, extension, and README",
+    "test": "npm run test:claims -- --grep @claim:exact-page-resume",
+    "sandbox": "The installed MV3 popup opens the stored URL including its query and fragment in a new page."
+  },
+  {
+    "id": "clear-undo",
+    "claim": "Clearing a card requires confirmation and can be undone immediately",
+    "where": "Extension and README",
+    "test": "npm run test:claims -- --grep @claim:clear-undo",
+    "sandbox": "The installed MV3 popup confirms clear, removes the storage record, then restores it through Undo."
+  },
+  {
+    "id": "next-action-length",
+    "claim": "The next action must contain 5–12 words",
+    "where": "Landing page, extension, privacy page, and README",
+    "test": "npm test -- --testNamePattern @claim:next-action-length",
+    "sandbox": "Unit boundaries accept exactly 5 and 12 words while rejecting 4 and 13 with exact recovery messages."
+  },
+  {
+    "id": "no-account",
+    "claim": "The free card workflow requires no account",
+    "where": "Landing page, privacy page, extension, and README",
+    "test": "npm run test:claims -- --grep @claim:no-account",
+    "sandbox": "A clean installed MV3 profile renders and uses a saved card without credentials or an account form."
+  },
+  {
+    "id": "quiet-reminder",
+    "claim": "The quiet toolbar dot is optional and off by default",
+    "where": "Landing page, settings, privacy page, and README",
+    "test": "npm run test:claims -- --grep @claim:quiet-reminder",
+    "sandbox": "A clean installed MV3 profile observes an empty badge by default and a dot only after the stored preference is enabled."
+  },
+  {
+    "id": "daily-license-check",
+    "claim": "A stored Plus license is verified at most once per day",
+    "where": "Privacy page and README",
+    "test": "npm run test:claims -- --grep @claim:daily-license-check",
+    "sandbox": "The installed settings page uses a fresh cached verdict without a request and makes one mocked gateway request after 24 hours."
+  },
+  {
+    "id": "plus-treatments",
+    "claim": "A valid Plus license enables Lichen and Night color treatments while the core card stays free",
+    "where": "Landing page, settings, terms, and README",
+    "test": "npm run test:claims -- --grep @claim:plus-treatments",
+    "sandbox": "The installed settings page starts with Plus choices disabled, unlocks from a recorded valid response, and persists Night."
+  },
+  {
+    "id": "license-rate-limit",
+    "claim": "The client honors a real 429 Retry-After response without blocking the free workflow",
+    "where": "Website client, extension settings, and README",
+    "test": "npm test -- --testNamePattern @claim:license-rate-limit",
+    "sandbox": "Unit coverage parses delta and date Retry-After values and verifies the user-facing free-workflow fallback."
+  },
+  {
+    "id": "plus-price",
+    "claim": "Plus costs $9 once and checkout uses the Sociobot product endpoint",
+    "where": "Landing page, settings, terms, and README",
+    "test": "npm run test:claims -- --grep @claim:plus-price",
+    "sandbox": "The installed settings page shows the exact one-time price and links to the registered Sociobot checkout endpoint without opening it."
+  },
+  {
+    "id": "download-package",
+    "claim": "The download is an installable Manifest V3 extension package",
+    "where": "Landing page and README",
+    "test": "npm run build && npm run test:artifact -- --grep @claim:download-package",
+    "sandbox": "A clean build opens the packaged ZIP, checks fixed archive dates and required MV3 files, and validates its deployment MIME rule."
   }
 ]

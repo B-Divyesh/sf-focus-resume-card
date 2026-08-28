@@ -56,6 +56,26 @@ const assertTargets = async (page, label) => {
   }));
   if (undersized.length) throw new Error(`${label} undersized targets: ${undersized.join(', ')}`);
 };
+const luminance = (cssColor) => {
+  const values = cssColor.match(/[\d.]+/gu)?.slice(0, 3).map((value) => Number(value) / 255) ?? [];
+  const [red, green, blue] = values.map((value) => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
+};
+const assertFocusContrast = async (page, selector, label) => {
+  const target = page.locator(selector);
+  await target.focus();
+  const colors = await target.evaluate((element) => {
+    let background = 'rgba(0, 0, 0, 0)';
+    for (let node = element.parentElement; node; node = node.parentElement) {
+      const value = getComputedStyle(node).backgroundColor;
+      if (value !== 'rgba(0, 0, 0, 0)' && value !== 'transparent') { background = value; break; }
+    }
+    return { outline: getComputedStyle(element).outlineColor, background };
+  });
+  const levels = [luminance(colors.outline), luminance(colors.background)].sort((left, right) => right - left);
+  const contrast = (levels[0] + 0.05) / (levels[1] + 0.05);
+  if (contrast < 3) throw new Error(`${label} focus indicator contrast is ${contrast.toFixed(2)}:1 (${colors.outline} on ${colors.background})`);
+};
 
 try {
   let worker = context.serviceWorkers()[0];
@@ -78,6 +98,8 @@ try {
   await assertAccessible(popup, 'saved-card popup');
   await assertSkipLink(popup, 'saved-card popup');
   await assertTargets(popup, 'saved-card popup');
+  await popup.emulateMedia({ colorScheme: 'dark' });
+  await assertFocusContrast(popup, '#resume-button', 'saved-card popup');
 
   const resumedPagePromise = context.waitForEvent('page');
   await popup.locator('#resume-button').click();
@@ -101,6 +123,8 @@ try {
   await assertAccessible(options, 'settings');
   await assertSkipLink(options, 'settings');
   await assertTargets(options, 'settings');
+  await options.emulateMedia({ colorScheme: 'dark' });
+  await assertFocusContrast(options, '#buy-link', 'settings');
   await worker.evaluate(async ({ action, targetUrl }) => {
     await chrome.storage.local.set({
       focusResumeCard: {

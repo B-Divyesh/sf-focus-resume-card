@@ -7,7 +7,8 @@ describe('next-action boundary', () => {
     expect(validateNextAction('write a failing test')).toBe('Add 1 more word.');
   });
 
-  it('accepts five through twelve words and rejects more', () => {
+  it('@claim:next-action-length accepts five through twelve words and rejects more', () => {
+    expect(validateNextAction('write a failing test')).toBe('Add 1 more word.');
     expect(validateNextAction('write the failing test for empty response')).toBeNull();
     expect(validateNextAction('one two three four five six seven eight nine ten eleven twelve')).toBeNull();
     expect(validateNextAction('one two three four five six seven eight nine ten eleven twelve thirteen')).toBe('Remove 1 word.');

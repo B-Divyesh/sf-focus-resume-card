@@ -61,3 +61,4 @@ Final prompt: “Use case: stylized-concept. Asset type: wide landing-page hero 
 - Generator: Azure OpenAI image deployment `factory-image`, via `/opt/fleet/lib/gen-image.sh`.
 - Generated: 2026-08-27.
 - License/provenance: original AI-generated asset commissioned for this product; no reference images, people, brands, or copyrighted characters.
+- Social preview: `public/illustrations/social-card.webp` is a centered 1200×630 crop of that original generated asset. The 180 px touch icon is derived from the repository's hand-authored product icon.

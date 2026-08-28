@@ -40,6 +40,7 @@ npm run build
 npm run test:artifact
 npm run test:package
 npm run test:demo
+npm run test:claims
 ```
 
 `npm run build` is the reproducible release command. It creates the unpacked extension in `.output/chrome-mv3`, builds the deployable static site in `dist/site`, and places the installable ZIP at `dist/site/downloads/focus-resume-card.zip`. The static deployment root is exactly `dist/site`.
@@ -71,6 +72,10 @@ options, and background files.
 The client handles a real `429 Retry-After` response from the Sociobot billing
 API without blocking the free workflow. Shared gateway policy is operated by
 Sociobot and is not a product-server promise made by this static repository.
+The required live allowance is recorded in
+`.factory/gateway-rate-limit-contract.json`; `npm run test:gateway` probes the
+real verify and checkout endpoints and fails unless each returns a real 429
+with `Retry-After` after its allowance.
 
 ## Install the extension locally
 

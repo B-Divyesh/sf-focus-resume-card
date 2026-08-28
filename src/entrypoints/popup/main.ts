@@ -83,11 +83,11 @@ function renderCard(card: ResumeCard) {
   const date = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(card.createdAt);
   cardView.innerHTML = `
     <article class="resume-card">
-      <div class="card-coordinate"><span>Waypoint 01</span><span>${escapeHtml(date)}</span></div>
+      <div class="card-coordinate"><span>Saved card</span><span>${escapeHtml(date)}</span></div>
       <div class="route-heading">
         <span class="waypoint" aria-hidden="true"></span>
         <div>
-          <p class="eyebrow">Your next physical action</p>
+          <p class="eyebrow">Your next action</p>
           <h2>${escapeHtml(card.nextAction)}</h2>
         </div>
       </div>
@@ -97,7 +97,7 @@ function renderCard(card: ResumeCard) {
         ${card.selection ? `<div><dt>Carried note</dt><dd class="selection">“${escapeHtml(card.selection)}”</dd></div>` : ''}
         <div><dt>Focus block</dt><dd>${escapeHtml(formatDuration(card.elapsedSeconds))}</dd></div>
       </dl>
-      <button class="button primary full" id="resume-button">Resume this trail <span aria-hidden="true">→</span></button>
+      <button class="button primary full" id="resume-button">Resume this page <span aria-hidden="true">→</span></button>
       <div class="secondary-actions">
         <button class="text-button" id="replace-button">Replace with this page</button>
         <button class="text-button danger-text" id="clear-button">Clear card</button>
@@ -108,7 +108,7 @@ function renderCard(card: ResumeCard) {
     try {
       const resumed = { ...card, resumedAt: Date.now() };
       await setCard(resumed);
-      setStatus('Trail restored. Opening one saved page…', 'success');
+      setStatus('Card resumed. Opening the saved page…', 'success');
       await chrome.tabs.create({ url: card.url });
       window.close();
     } catch {
@@ -117,12 +117,12 @@ function renderCard(card: ResumeCard) {
   });
   requireElement<HTMLButtonElement>('replace-button').addEventListener('click', () => openConfirmation(
     'Replace the current card?',
-    `“${card.nextAction}” will be removed before the new marker is saved.`,
+    `“${card.nextAction}” will be removed before the new card is saved.`,
     'Replace card',
     async () => { await renderCapture(); },
   ));
   requireElement<HTMLButtonElement>('clear-button').addEventListener('click', () => openConfirmation(
-    'Clear this trail marker?',
+    'Clear this saved card?',
     `“${card.nextAction}” and its local context will be removed.`,
     'Clear card',
     async () => {
@@ -150,7 +150,7 @@ async function renderCapture() {
       <form id="capture-form" novalidate>
         <div class="capture-heading">
           <div>
-            <p class="eyebrow">Leave one marker</p>
+            <p class="eyebrow">Save one card</p>
             <h2>Where should you restart?</h2>
           </div>
           <div class="timer" aria-label="Elapsed focus block"><span id="timer-value">${escapeHtml(formatDuration(preferences.focusStartedAt ? (Date.now() - preferences.focusStartedAt) / 1000 : 0))}</span></div>
@@ -210,7 +210,7 @@ async function renderCapture() {
       }
       const saveButton = requireElement<HTMLButtonElement>('save-button');
       saveButton.disabled = true;
-      saveButton.textContent = 'Placing marker…';
+      saveButton.textContent = 'Saving card…';
       setStatus('');
       try {
         let screenshot: string | null = null;
@@ -238,7 +238,7 @@ async function renderCapture() {
     showOnly(captureView);
     actionInput.focus();
   } catch (error) {
-    captureView.innerHTML = `<div class="error-state"><span class="waypoint" aria-hidden="true"></span><h2>This page cannot be marked</h2><p>${escapeHtml(error instanceof Error ? error.message : 'Open a regular browser tab and try again.')}</p><button class="button secondary" id="retry-button">Try again</button></div>`;
+    captureView.innerHTML = `<div class="error-state"><span class="waypoint" aria-hidden="true"></span><h2>This page cannot be saved</h2><p>${escapeHtml(error instanceof Error ? error.message : 'Open a regular browser tab and try again.')}</p><button class="button secondary" id="retry-button">Try again</button></div>`;
     showOnly(captureView);
     requireElement<HTMLButtonElement>('retry-button').addEventListener('click', () => void renderCapture());
   }

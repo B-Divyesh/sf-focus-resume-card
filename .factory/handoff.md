@@ -1,49 +1,114 @@
-# Focus Resume Card — independent verification handoff
+# Focus Resume Card — repair 6 handoff
 
-## Status: FAIL
+## Status
 
-Candidate `3d7b1817b6ee8db8c4562f5895ba1168d083305b` was independently
-verified on 2026-08-28 against
-<https://focus-resume-card.sociobot.in/>. Production now byte-matches the
-candidate, and the first-read, installed extension, build, demo, accessibility,
-privacy-request, and performance checks are otherwise healthy.
+The repository-owned findings from independent verification commit
+`19348dbba96c1869657f8ac03a3732c1221d8916` are repaired and covered by
+regressions. The static product is buildable and ready to deploy.
 
-Release remains blocked by three P1 defects:
+Release acceptance remains blocked by one external factory-service condition:
+the shared Sociobot billing gateway does not enforce its documented request
+allowances. This static repository cannot configure that service, and
+`AGENTS.md` forbids changing billing or infrastructure from the product repo.
+The repair restores an exact live probe so this condition cannot be hidden.
 
-1. `.factory/claims.json` omits many public promises, and its local-data test
-   exercises only the website demo rather than real extension-card behavior.
-2. The product-unlock gateway returned 200 for 13/13 verify requests and 303 for
-   7/7 checkout requests from one client. No 429 or `Retry-After` appeared after
-   the former documented 12/60s and 6/60s allowances.
-3. The blue 3 px focus ring is only 2.89:1 against the dark card surface; the
-   required minimum is 3:1.
+## Repairs
 
-Two P2 defects remain: map metaphors make extension terminology inconsistent,
-and secondary/404 social metadata plus the 1200×630 social asset are incomplete.
+- Expanded `.factory/claims.json` from 3 demo-only entries to 18 public
+  claims. Exact tests now cover real installed-extension storage and requests,
+  card fields, offline use, redaction, local screenshots, exact URL resume,
+  confirmed clear and Undo, 5–12-word boundaries, no-account use, opt-in
+  reminders, daily license caching, Plus treatments, price, response handling,
+  demo isolation, runtime requests, and the installable package.
+- Added `scripts/extension-claims-check.mjs`, which loads the production MV3
+  build in a clean Chromium profile and observes real `chrome.storage.local`,
+  extension pages, tabs, requests, badge state, and recorded billing responses.
+- Changed the dark focus token from `#1676a3` to `#39a8dc`. The extension
+  resume-card surface now measures 5.44:1 instead of 2.89:1. Browser checks
+  independently fail below 3:1 on site, popup, and settings controls.
+- Replaced extension map-lore labels with the consistent terms `card`,
+  `next action`, and `page context`. A source regression rejects every
+  retired phrase. `.factory/copy-audit.md` records the changed copy.
+- Added a reviewed 1200×630 social image derived from the original generated
+  artwork, a 180×180 touch icon, and complete canonical/Open Graph/Twitter/touch
+  metadata on home, demo, privacy, terms, and 404.
+- Fixed the demo claim harness so it terminates the Vite process it starts.
+- Restored `.factory/gateway-rate-limit-contract.json` and
+  `npm run test:gateway`. It probes 12+1 verify and 6+1 checkout calls and
+  requires a real 429, positive `Retry-After`, `Cache-Control: no-store`,
+  and no checkout redirect on the blocked call.
 
-Full evidence, command results, performance numbers, and required next steps
-are in [.factory/verification-7.md](verification-7.md).
+## Clean verification
 
-## Verification summary
+Run on 2026-08-28 UTC with Playwright 1.58.2 Chromium from
+`/opt/pw-browsers/chromium-1208/chrome-linux64/chrome`.
 
 ```text
-npm ci                                             PASS (178 packages, 0 vulnerabilities)
-npm run check                                      PASS (24 tests; exact build)
-npm run test:artifact                              PASS (37,582-byte ZIP)
-npm run test:package                               PASS (13 reproducible entries)
-npm run test:demo                                  PASS (3 listed claims)
-npm run test:a11y                                  PASS, except independent focus-contrast check
-npm run test:extension                             PASS
-A11Y_URL=https://focus-resume-card.sociobot.in
-  npm run test:a11y                                PASS, except independent focus-contrast check
-npm run test:live                                  PASS (17 deployed files byte-match)
-/opt/fleet/lib/verify-url.sh local and live        PASS
-Lighthouse mobile                                 99/100/100/100; LCP 1.5 s; CLS 0
-gateway allowance probe                           FAIL (no 429 / Retry-After)
-claims cross-check                                FAIL (unlisted/unproven claims)
-dark focus-ring contrast                          FAIL (2.89:1)
+npm ci                         PASS — 178 packages, 0 vulnerabilities
+npm run check                  PASS — typecheck, lint, 27 tests, production build
+npm run test:artifact          PASS — 37,550-byte MV3 ZIP and delivery rules
+npm run test:package           PASS — 13 reproducible fixed-date entries
+unzip -t ...zip                PASS — no archive errors
+npm run test:demo              PASS — all 3 website/demo claim tests
+npm run test:claims            PASS — all 12 installed-extension claim tests
+all 18 claims.json commands    PASS individually from their exact command
+npm run test:a11y              PASS — desktop + 390×844, light/dark/reduced motion
+npm run test:extension         PASS — installed MV3 flow, offline, keyboard, axe
+verify-url.sh local            PASS — title/lang/h1/main/alt/labels, no errors
 ```
 
-The worktree contains no product-code changes. The final production build is
-present in `dist/site`; generated build/dependency/evidence directories remain
-ignored. Only this verification report and handoff were changed.
+Accessibility checks cover every site route plus popup and settings. They
+include keyboard skip links, Enter/Space operation, 44 px targets, overflow,
+focus visibility and contrast, reduced motion, and axe WCAG A/AA/2.1 AA. Axe
+reported no serious or critical findings. Browser console and page errors were
+empty.
+
+Local Lighthouse mobile:
+
+| Category or metric | Result |
+| --- | ---: |
+| Performance | 100 |
+| Accessibility | 100 |
+| Best practices | 100 |
+| SEO | 100 |
+| FCP | 0.9 s |
+| LCP | 1.8 s |
+| TBT | 0 ms |
+| CLS | 0 |
+
+Static budgets pass: home JavaScript is 2.92 KB raw / 1.43 KB gzip, shared CSS
+is 14.74 KB raw / 4.24 KB gzip, there are no downloaded fonts, the hero is
+124,548 bytes, the social image is 98,724 bytes, and the extension is 59.65 KB
+uncompressed.
+
+## External response-policy blocker
+
+`npm run test:gateway` failed on 2026-08-28 UTC with exact observations:
+
+```text
+license-verify: request 13 must return 429, received 200
+checkout: request 7 must return 429, received 303
+```
+
+Neither response had `Retry-After`. Product clients correctly handle a real
+429 and keep the free workflow available, but direct requests to
+`api.sociobot.in` never execute this repository's code. The factory operator
+must apply the contract at the trusted billing edge and rerun
+`npm run test:gateway` after a quiet 60-second window.
+
+## Deploy and verify
+
+Deploy the complete `dist/site` directory:
+
+```bash
+/opt/fleet/lib/deploy-static.sh focus-resume-card dist/site
+npm run test:live
+A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
+/opt/fleet/lib/verify-url.sh https://focus-resume-card.sociobot.in .factory/evidence/verify-live
+npm run test:gateway
+```
+
+The deployment must include `downloads/focus-resume-card.zip`,
+`staticwebapp.config.json`, the new social/touch assets, all legal/demo/404
+routes, and hashed assets. No infrastructure, DNS, billing configuration, or
+secret is committed in this repository.

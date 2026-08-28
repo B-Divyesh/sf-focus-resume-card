@@ -107,7 +107,7 @@ async function initialize() {
     if (!unlocked) return;
     const current = await getPreferences();
     await setPreferences({ ...current, quietBadge: badgeInput.checked });
-    saveStatus.textContent = badgeInput.checked ? 'Quiet toolbar marker enabled.' : 'Quiet toolbar marker off.';
+    saveStatus.textContent = badgeInput.checked ? 'Quiet toolbar dot enabled.' : 'Quiet toolbar dot off.';
   });
   getElement<HTMLFormElement>('restore-form').addEventListener('submit', async (event) => {
     event.preventDefault();

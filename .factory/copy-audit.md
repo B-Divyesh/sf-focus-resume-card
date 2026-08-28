@@ -1,8 +1,8 @@
 # Landing-page copy audit
 
-All landing-page sentences were reviewed on 2026-08-28. The headline has 7
-words; every explanatory sentence is 22 words or fewer. There are no banned
-plain-words terms in the visitor-facing landing copy.
+All landing-page and extension sentences were reviewed on 2026-08-28. The
+headline has 7 words; every explanatory landing sentence is 22 words or fewer.
+There are no banned plain-words terms in visitor-facing copy.
 
 | Text | Words |
 | --- | ---: |
@@ -28,6 +28,28 @@ plain-words terms in the visitor-facing landing copy.
 | Download this package and load it as an unpacked extension. | 10 |
 | See one saved action before you install. | 8 |
 
+## Extension copy repair
+
+The verifier found that the extension used several map metaphors for one saved
+unit. Those labels now use the product terms below. Decorative class names and
+the generated map illustration remain visual implementation details, not user
+instructions.
+
+| Previous copy | Current copy | Words |
+| --- | --- | ---: |
+| Trail marker | Saved card | 2 |
+| Finding your trail marker… | Loading your saved card… | 4 |
+| Waypoint 01 | Saved card | 2 |
+| Your next physical action | Your next action | 3 |
+| Resume this trail | Resume this page | 3 |
+| Trail restored. Opening one saved page… | Card resumed. Opening the saved page… | 6 |
+| Leave one marker | Save one card | 3 |
+| Placing marker… | Saving card… | 2 |
+| Map room | Settings | 1 |
+| Map appearance | Appearance | 1 |
+| Choose a map treatment | Choose a color treatment | 4 |
+| Quiet toolbar marker | Quiet toolbar dot | 3 |
+
 ## Terminology
 
 | Concept | One term |
@@ -37,3 +59,6 @@ plain-words terms in the visitor-facing landing copy.
 | Browser context | page context |
 | Sample experience | demo |
 | Optional paid edition | Plus |
+
+Regression check: `tests/contract.test.ts` rejects the retired UI phrases in
+all extension-facing HTML, TypeScript, and manifest copy.

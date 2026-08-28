@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
+import { resolve } from 'node:path';
 import { chromium } from '@playwright/test';
 
 const requested = process.argv.join(' ');
@@ -24,7 +25,8 @@ async function waitForServer() {
   throw new Error('demo server did not start');
 }
 
-const server = spawn(process.platform === 'win32' ? 'npx.cmd' : 'npx', ['vite', '--config', 'vite.site.config.ts', '--host', '127.0.0.1', '--port', String(port)], { stdio: 'ignore' });
+const viteCli = resolve('node_modules/vite/bin/vite.js');
+const server = spawn(process.execPath, [viteCli, '--config', 'vite.site.config.ts', '--host', '127.0.0.1', '--port', String(port)], { stdio: 'ignore' });
 try {
   await waitForServer();
   const browser = await chromium.launch(executablePath ? { executablePath } : {});

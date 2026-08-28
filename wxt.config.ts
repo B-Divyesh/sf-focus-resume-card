@@ -5,7 +5,7 @@ export default defineConfig({
   publicDir: 'extension-public',
   manifest: {
     name: 'Focus Resume Card',
-    description: 'Leave one concrete trail marker for your interrupted work.',
+    description: 'Save one concrete next action for interrupted work.',
     version: '1.0.0',
     permissions: ['storage', 'activeTab', 'scripting'],
     action: {
