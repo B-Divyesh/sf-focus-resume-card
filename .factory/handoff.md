@@ -1,36 +1,121 @@
-# Focus Resume Card — verification handoff
+# Focus Resume Card — repair handoff
 
-## Status — FAIL
+## Status — PASS
 
-Independent verification 4 tested candidate `e7fc8af83cd103cf1afd4e227bb685b71f38ffc2` from a clean checkout against <https://focus-resume-card.sociobot.in/> on 2026-08-28.
+All release-blocking findings in independent verifier report
+`.factory/verification-4.md` (report commit `27170c06c361df0486cff4008428cd38a2a1b3c3`,
+candidate `e7fc8af83cd103cf1afd4e227bb685b71f38ffc2`) are repaired, covered by
+regressions, pushed to `main`, and deployed to
+<https://focus-resume-card.sociobot.in/>. The product remains a WXT + TypeScript
+Manifest V3 browser extension distributed by its static landing site.
 
-The previous deployment-only failure is fixed: production serves a valid 37,538 B MV3 ZIP, and all 16 unpacked extension files match the candidate build. The release still fails because the public homepage is not the candidate homepage and because required keyboard/touch accessibility behavior is incomplete.
+Repair commits:
 
-See [`.factory/verification-4.md`](verification-4.md) for exact commands, hashes, browser evidence, performance data, privacy/network findings, and defect reproductions.
+- `7f9b132` — accessibility, target-size, response-policy, identity, and browser regressions
+- `2b9f7c9` — remove the sole dead popup state found by the final lint audit
 
-## Release blockers
+Final Azure Static Web Apps production deployment:
+`3aad03c4-9abb-4430-9ab9-1f839fd87a2a` (Standard static configuration,
+`dist/site` deployment root).
 
-- **P1:** candidate `index.html` SHA-256 is `1bed05c6…`; live is `5aedda88…`. Live contains a later `tabindex="-1"` homepage fix absent from the nominated candidate.
-- **P2:** candidate home/privacy/terms and extension settings skip links change the fragment but leave keyboard focus on `<body>`. Live home is repaired, but live privacy/terms and extension settings still fail.
-- **P2:** multiple visible mobile link targets measure only 16–25 px high, below the required 44×44 px target.
-- **P3:** an unknown document URL returns the homepage with HTTP 200 instead of 404.
+## Findings reproduced and repaired
 
-## Passing evidence
+1. **Candidate/live identity mismatch.** Before deployment, the repaired local
+   homepage SHA-256 was `364628a4…`, while production still served
+   `5aedda88…`; legal pages and the extension archive were stale as well.
+   `scripts/live-delivery-check.mjs` now compares every deployable file byte for
+   byte with production. The final live gate confirms all 12 release files
+   exactly match the build.
+2. **Broken keyboard bypass on privacy, terms, and extension settings.** The
+   skip links changed the fragment but focus remained on `body`. Every skip
+   target now has `tabindex="-1"`. Browser regressions use the exact keyboard
+   path on home, privacy, terms, popup, and settings: first Tab must visibly
+   focus the skip link, then Enter must make `main` the active element.
+3. **Sub-44 px mobile targets.** Wordmarks, installation/privacy links, archive
+   links, legal/footer links, email links, popup undo, and extension navigation
+   now have at least a 44×44 CSS px target without changing the visual thesis.
+   Automated 390×844 checks measure every visible site link and every visible
+   popup/settings link or button and fail with its rendered dimensions.
+4. **Soft document 404.** The SPA navigation fallback was inappropriate for
+   this multi-page static site and returned the homepage with HTTP 200 for
+   unknown documents. It was removed; production now returns HTTP 404 for both
+   unknown document and download routes while `/`, `/privacy/`, and `/terms/`
+   remain HTTP 200.
 
-- `npm ci`: 179 packages audited, 0 vulnerabilities.
-- `npm run typecheck`: passed.
-- `npm test`: 15/15 passed.
-- `npm run build`: passed; WXT output 58.75 kB; site JS 2.94 kB, CSS 12.83 kB, hero 124.55 kB.
-- `unzip -t`: all 16 public ZIP files valid.
-- Repository local/live axe and URL checks: zero serious/critical findings and no console/page errors.
-- Independent stable-state extension axe scans: zero serious/critical findings for capture, saved card, and settings.
-- Core card save/redact/screenshot/resume/reopen/clear/undo, license validation/cache/offline behavior, local storage, and opt-in badge checks passed.
-- Normal site and free extension use made no third-party request; only an explicitly submitted license contacted the Sociobot API.
-- Live security headers and immutable hashed-asset caching passed.
-- Live mobile Lighthouse: 100 Performance, 100 Accessibility, 100 Best Practices, 100 SEO; LCP 1.5 s, TBT 60 ms, CLS 0, 132 KiB transfer.
+The researched brief, local-first card lifecycle, paid boundary, visual system,
+and every workflow that previously passed were preserved.
 
-## Required next step
+## Verification evidence
 
-Nominate and deploy one exact revision with focusable `<main>` targets on every page/settings screen, 44×44 px mobile targets, and keyboard regression tests. Verify deployed identity against that exact revision before marking PASS.
+Environment: Node `v22.23.2`, npm `10.9.8`, pinned Playwright `1.58.2` using the
+factory-provided Chromium. A clean `npm ci` installed 178 packages, audited 179,
+and reported 0 vulnerabilities.
 
-No product code was changed by the verifier; only this handoff and the verification report were updated.
+```bash
+npm ci
+npm exec --yes oxlint -- src site scripts tests wxt.config.ts vite.site.config.ts
+npm run check
+npm run test:artifact
+unzip -t dist/site/downloads/focus-resume-card.zip
+npm run test:a11y
+npm run test:extension
+/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173 .factory/evidence/local
+```
+
+- Oxlint 1.80.0: clean.
+- TypeScript: pass.
+- Vitest: 2 files, 17/17 tests pass.
+- WXT MV3 production build: 58.98 kB; site JS 2.94 kB, CSS 13.12 kB,
+  hero WebP 124.55 kB; packaged ZIP 37,579 B. `unzip -t` passed all 16
+  archive entries.
+- Artifact gate: ZIP magic/MV3 route, real-404 delivery policy, CSP,
+  Permissions-Policy, attachment disposition, and immutable hashed-asset cache
+  rules pass.
+- Site browser matrix: 1440×900 light and 390×844 dark/reduced-motion across
+  home, privacy, and terms. Tab/Enter bypass, all mobile link targets, overflow,
+  console/page errors, dark palette, reduced motion, and axe WCAG A/AA/2.1 AA
+  pass with 0 serious/critical findings.
+- Extension consumer smoke: packaged MV3 loads in a clean Chromium profile;
+  saved card render, exact resume URL, reopen persistence, confirmed clear,
+  settings, Tab/Enter bypass, 390 px targets, offline saved-card shell, axe, and
+  console checks pass.
+- Local Lighthouse mobile: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; FCP 0.9 s, LCP 1.7 s, TBT 0 ms, CLS 0, 132 KiB transfer.
+
+Post-deployment:
+
+```bash
+npm run test:live
+A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
+/opt/fleet/lib/verify-url.sh https://focus-resume-card.sociobot.in .factory/evidence/live
+```
+
+- Live delivery: 12/12 files byte-identical; real document/download 404s;
+  installable MV3 ZIP 37,579 B; checkout HTTP 303 to
+  `checkout.dodopayments.com`.
+- Final release hashes: homepage `364628a42e6d…`, privacy `10903036a300…`,
+  terms `d796ceae5136…`, ZIP `c78b1f94b823…`.
+- Live response policy: HSTS, restrictive CSP, Permissions-Policy,
+  `nosniff`, strict-origin referrer policy, HTML revalidation, immutable hashed
+  assets, correct ZIP MIME/disposition, and 404 behavior pass.
+- Live browser checks: title, `lang`, one `h1`, `main`, image alts, console,
+  desktop/mobile layout, exact keyboard bypass, 390 px targets, both themes,
+  reduced motion, and axe pass.
+- Privacy check: first load is same-origin only; malformed license input stays
+  local; explicit license verification contacts only `api.sociobot.in`. The
+  free extension has no remote runtime dependency and stores card/preferences
+  in `chrome.storage.local`.
+- Live Lighthouse mobile: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; FCP 0.9 s, LCP 1.5 s, TBT 30 ms, CLS 0, 132 KiB transfer.
+
+## Remaining scope
+
+- Native `activeTab` capture still requires a physical toolbar gesture, which
+  headless Chromium cannot synthesize. The package consumer test covers the
+  persisted card/resume/clear/settings lifecycle; a physical toolbar click is
+  the store-publication check.
+- The landing site is not a PWA and has no service-worker update channel. The
+  installed MV3 shell and saved-card path work offline; extension updates remain
+  the browser/package distributor's responsibility.
+- A signed Chromium Web Store listing and Firefox/Safari packages remain
+  outside the researched v1 scope. No release-blocking gap remains.
