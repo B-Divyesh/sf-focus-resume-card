@@ -5,7 +5,7 @@ import { chromium } from '@playwright/test';
 const baseUrl = (process.env.A11Y_URL ?? 'http://127.0.0.1:4173').replace(/\/$/u, '');
 const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
 const browser = await chromium.launch(executablePath ? { executablePath } : {});
-const routes = ['/', '/privacy/', '/terms/'];
+const routes = ['/', '/demo/', '/privacy/', '/terms/', '/404.html'];
 const viewports = [
   { name: 'mobile-dark-reduced', width: 390, height: 844, colorScheme: 'dark', reducedMotion: 'reduce' },
   { name: 'desktop-light', width: 1440, height: 900, colorScheme: 'light', reducedMotion: 'no-preference' },
@@ -71,4 +71,4 @@ await browser.close();
 await mkdir('.factory/evidence', { recursive: true });
 await writeFile('.factory/evidence/accessibility.json', JSON.stringify(evidence, null, 2));
 if (failures.length) throw new Error(failures.join('\n'));
-console.log('accessibility: home/privacy/terms pass axe, keyboard bypass, light/dark, reduced motion, overflow, console, and 390px link-target checks');
+console.log('accessibility: home/demo/privacy/terms/404 pass axe, keyboard bypass, light/dark, reduced motion, overflow, console, and 390px link-target checks');

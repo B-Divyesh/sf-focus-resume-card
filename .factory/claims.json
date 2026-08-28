@@ -1,0 +1,23 @@
+[
+  {
+    "id": "demo-sample-card",
+    "claim": "Try it with sample data",
+    "where": "Landing page primary action and /demo",
+    "test": "npm run test:demo -- --grep @claim:demo-sample-card",
+    "sandbox": "Fresh browser context opens /demo and observes a complete sample card before any setup."
+  },
+  {
+    "id": "demo-isolation",
+    "claim": "Demo — sample data, nothing is saved",
+    "where": "Persistent /demo banner",
+    "test": "npm run test:demo -- --grep @claim:demo-isolation",
+    "sandbox": "Fresh browser context resumes and resets the sample; only the demo:focus-resume-card storage key is written."
+  },
+  {
+    "id": "demo-local-data",
+    "claim": "Card data stays in your browser",
+    "where": "Landing-page facts and privacy section",
+    "test": "npm run test:demo -- --grep @claim:demo-local-data",
+    "sandbox": "Fresh demo context records all requests through resume/reset; every request is same-origin and no card request is sent."
+  }
+]

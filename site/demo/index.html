@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Try a sample Focus Resume Card without saving anything to your real browser data." />
+    <meta name="theme-color" content="#f3eedc" />
+    <link rel="canonical" href="https://focus-resume-card.sociobot.in/demo" />
+    <meta property="og:title" content="Demo — Focus Resume Card" />
+    <meta property="og:description" content="Try a sample resume card without saving anything to your real browser data." />
+    <meta property="og:image" content="https://focus-resume-card.sociobot.in/illustrations/topographic-route.webp" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Demo — Focus Resume Card</title>
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icon.svg" />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="nav-shell">
+      <a class="wordmark" href="/"><span class="mark" aria-hidden="true"></span><span>Focus Resume Card</span></a>
+      <nav aria-label="Primary navigation"><a href="/">Home</a><a href="#sample-card">Sample card</a><a class="nav-download" href="/downloads/focus-resume-card.zip" download>Download</a></nav>
+    </header>
+    <aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><span>Use the sample card without changing your real extension data.</span><button id="reset-demo" type="button">Reset demo</button><a href="/">Start for real</a></aside>
+    <main id="main" tabindex="-1" class="demo-page">
+      <section class="demo-intro" aria-labelledby="demo-title">
+        <p class="eyebrow">Sample data</p>
+        <h1 id="demo-title">Try one saved action.</h1>
+        <p>See the card an interrupted developer opens before returning to tabs.</p>
+      </section>
+      <section class="demo-workspace" id="sample-card" aria-labelledby="sample-title">
+        <div class="extension-frame">
+          <div class="frame-bar"><span class="mini-mark" aria-hidden="true"></span><span>Sample resume card</span><span>•••</span></div>
+          <article class="demo-card">
+            <div class="coordinate"><span>Saved at 11:42 AM</span><span id="card-state">Waiting</span></div>
+            <div class="demo-action"><span class="waypoint" aria-hidden="true"></span><div><p class="eyebrow">Next action</p><h2 id="sample-title">Write failing test for empty response</h2></div></div>
+            <dl>
+              <div><dt>Page</dt><dd>Retry middleware · api.ts<small>localhost</small></dd></div>
+              <div><dt>Selected note</dt><dd>“Return a typed error when attempts is zero.”</dd></div>
+              <div><dt>Focus block</dt><dd>34 minutes</dd></div>
+            </dl>
+            <button class="button primary demo-button" id="resume-sample" type="button">Resume this page <span aria-hidden="true">→</span></button>
+            <p class="demo-result" id="demo-result" role="status" aria-live="polite"></p>
+          </article>
+        </div>
+        <div class="demo-explain"><p class="eyebrow">What this shows</p><h2>One page, one note, one next step.</h2><p>The sample is isolated in demo browser storage. Reset restores it. Starting for real discards it.</p><a class="button secondary" href="/downloads/focus-resume-card.zip" download>Download the extension</a></div>
+      </section>
+    </main>
+    <footer><div><a class="wordmark" href="/"><span class="mark" aria-hidden="true"></span><span>Focus Resume Card</span></a><p>A local extension for returning to interrupted work.</p></div><nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav><p class="disclosure">Built by Param Factory · v1.0.0</p></footer>
+    <script type="module" src="/demo.ts"></script>
+  </body>
+</html>

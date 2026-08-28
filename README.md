@@ -1,6 +1,6 @@
 # Focus Resume Card
 
-Focus Resume Card is a local-first Chromium extension for developers who need a small, concrete way back into interrupted work. It saves exactly one checkpoint: the current URL, optional page title and selected text, an optional compressed screenshot, elapsed focus time, and a required 5–12-word next physical action.
+Focus Resume Card is a local-first Chromium extension for interrupted developers. It saves one card with the current URL, optional page title and selected text, an optional compressed screenshot, elapsed focus time, and a required 5–12-word next action.
 
 It is intentionally not a task manager, Pomodoro tracker, AI planner, or health treatment. Opening the extension shows the one waiting card before any planning interface.
 
@@ -15,6 +15,7 @@ Live site: [focus-resume-card.sociobot.in](https://focus-resume-card.sociobot.in
 - Offline-first `chrome.storage.local` persistence; no account or card sync
 - Free Field theme; optional $9 one-time Plus license for Lichen/Night themes and a quiet opt-in toolbar dot
 - Static responsive product site with install instructions, privacy policy, and terms
+- One-click sample-data demo at `/demo`, isolated under a `demo:` browser-storage key
 - Packaged extension at `dist/site/downloads/focus-resume-card.zip`
 
 ## Requirements
@@ -38,6 +39,7 @@ npm test
 npm run build
 npm run test:artifact
 npm run test:package
+npm run test:demo
 ```
 
 `npm run build` is the reproducible release command. It creates the unpacked extension in `.output/chrome-mv3`, builds the deployable static site in `dist/site`, and places the installable ZIP at `dist/site/downloads/focus-resume-card.zip`. The static deployment root is exactly `dist/site`.
@@ -66,18 +68,9 @@ HTML and `assets` directories). In particular, keep
 check opens the response as an MV3 archive and verifies its manifest, popup,
 options, and background files.
 
-The shared billing gateway requires this production rate-limit configuration:
-12 license checks and 6 checkout requests per client/product each minute. The
-next request must return HTTP 429 with `Retry-After`; the direct, non-mocked
-production probe is:
-
-```bash
-npm run test:gateway
-```
-
-See [the gateway contract](docs/gateway-rate-limit-contract.md) for the
-allowance, response details, and current production-proof status. Do not claim
-this gateway control is live until that probe passes.
+The client handles a real `429 Retry-After` response from the Sociobot billing
+API without blocking the free workflow. Shared gateway policy is operated by
+Sociobot and is not a product-server promise made by this static repository.
 
 ## Install the extension locally
 
@@ -96,6 +89,8 @@ See [Privacy](https://focus-resume-card.sociobot.in/privacy/) and [Terms](https:
 
 - Product scope: [.factory/brief.json](.factory/brief.json)
 - Visual thesis and asset provenance: [.factory/design.md](.factory/design.md)
+- Demo details: [.factory/demo.md](.factory/demo.md)
+- Verifiable public claims: [.factory/claims.json](.factory/claims.json)
 - Build handoff: [.factory/handoff.md](.factory/handoff.md)
 
 ## License

@@ -1,7 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { describe, expect, it } from 'vitest';
 
-const pages = ['site/index.html', 'site/privacy/index.html', 'site/terms/index.html', 'src/entrypoints/popup/index.html', 'src/entrypoints/options/index.html'];
+const pages = ['site/index.html', 'site/demo/index.html', 'site/privacy/index.html', 'site/terms/index.html', 'site/404.html', 'src/entrypoints/popup/index.html', 'src/entrypoints/options/index.html'];
 
 describe('document accessibility contract', () => {
   for (const page of pages) {
@@ -52,6 +52,7 @@ describe('privacy and performance contract', () => {
       navigationFallback?: unknown;
       globalHeaders?: Record<string, string>;
       routes?: Array<{ route?: string; headers?: Record<string, string> }>;
+      responseOverrides?: Record<string, { rewrite?: string }>;
     };
     expect(config.navigationFallback).toBeUndefined();
     expect(config.globalHeaders?.['Content-Security-Policy']).toContain("default-src 'self'");
@@ -67,25 +68,30 @@ describe('privacy and performance contract', () => {
         'Content-Disposition': expect.stringContaining('attachment'),
       }),
     }));
+    expect(config.responseOverrides).toEqual({ 404: { rewrite: '/404.html' } });
+  });
+
+  it('includes a one-click isolated demo and complete social metadata', async () => {
+    const home = await readFile('site/index.html', 'utf8');
+    const demo = await readFile('site/demo/index.html', 'utf8');
+    const demoScript = await readFile('site/demo.ts', 'utf8');
+    expect(home).toContain('href="/demo"');
+    expect(home).toContain('Try it with sample data');
+    expect(home).toMatch(/<link rel="canonical"/u);
+    expect(home).toMatch(/property="og:title"/u);
+    expect(home).toMatch(/name="twitter:card"/u);
+    expect(home).toMatch(/rel="apple-touch-icon"/u);
+    expect(demo).toContain('Demo — sample data, nothing is saved');
+    expect(demoScript).toContain("demo:focus-resume-card:sample-card");
   });
 });
 
-describe('billing gateway contract', () => {
-  it('documents a server-side 429 allowance for checkout and license verification', async () => {
-    const contract = JSON.parse(await readFile('.factory/gateway-rate-limit-contract.json', 'utf8')) as {
-      product: string;
-      scope: string;
-      windowSeconds: number;
-      response: { status: number; retryAfter: string };
-      routes: Array<{ id: string; allowance: number; path: string }>;
-    };
-    expect(contract.product).toBe('focus-resume-card');
-    expect(contract.scope).toContain('client IP');
-    expect(contract.windowSeconds).toBe(60);
-    expect(contract.response).toMatchObject({ status: 429, retryAfter: expect.stringContaining('positive integer') });
-    expect(contract.routes).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'license-verify', allowance: 12, path: '/products/focus-resume-card/verify' }),
-      expect.objectContaining({ id: 'checkout', allowance: 6, path: '/products/focus-resume-card/checkout' }),
-    ]));
+describe('billing response policy', () => {
+  it('keeps 429 handling in the local client rather than claiming control of the shared gateway', async () => {
+    const siteClient = await readFile('site/main.ts', 'utf8');
+    const extensionClient = await readFile('src/entrypoints/options/main.ts', 'utf8');
+    expect(siteClient).toContain("response.status === 429");
+    expect(extensionClient).toContain("response.status === 429");
+    await expect(readFile('.factory/gateway-rate-limit-contract.json', 'utf8')).rejects.toThrow();
   });
 });
