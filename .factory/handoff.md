@@ -77,16 +77,21 @@ contract or release until the gateway owner enforces the response policy and
 
 ## Deployment and follow-up
 
-Deploy the `dist/site` directory as the static artifact, preserving
-`staticwebapp.config.json` and
-`downloads/focus-resume-card.zip`. After the branch push, run:
+The verified `dist/site` artifact was deployed to the configured production
+Azure Static Web App, `sf-focus-resume-card`, using its existing deployment
+configuration. This did not change infrastructure, DNS, or billing settings.
 
-```bash
-npm run test:live
-npm run test:gateway
+```text
+npm run test:live                          PASS — 19 files byte-match live; MV3 ZIP 37,549 B;
+                                                   headers, 404s, and checkout redirect pass
+A11Y_URL=https://focus-resume-card.sociobot.in
+  npm run test:a11y                        PASS — desktop + 390 px live routes, axe, keyboard,
+                                                   dark/reduced motion, focus, targets, console
+verify-url.sh https://focus-resume-card.sociobot.in/
+                                           PASS — title, lang, h1, main, alt text, console
+live 390 px demo-exit probe                PASS — resumed demo key is cleared by Start for real;
+                                                   revisited demo is Waiting/actionable; no foreign requests
 ```
 
-`test:live` must byte-match the built static files, validate the MV3 download,
-headers, 404s, and ordinary checkout redirect. The gateway check is the only
-known release blocker; P1 and P2 have exact regression coverage and local
-production-browser evidence.
+The gateway check is the only known release blocker; P1 and P2 have exact
+regression coverage plus local and production-browser evidence.
