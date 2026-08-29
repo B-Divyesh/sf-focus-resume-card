@@ -60,6 +60,7 @@ requireCondition(missingDownload.status === 404, `missing download must be 404, 
 requireCondition(missingDocument.status === 404, `missing document must be 404, received ${missingDocument.status}`);
 requireCondition(csp.includes("default-src 'self'"), 'CSP header is missing or incomplete');
 requireCondition(permissions.includes('camera=()'), 'Permissions-Policy header is missing or incomplete');
+requireCondition(!permissions.includes('web-share=()'), 'Permissions-Policy contains unsupported web-share directive');
 requireCondition(home.headers.get('x-content-type-options') === 'nosniff', 'X-Content-Type-Options is missing or incorrect');
 requireCondition(home.headers.get('referrer-policy') === 'strict-origin-when-cross-origin', 'Referrer-Policy is missing or incorrect');
 requireCondition(Boolean(home.headers.get('strict-transport-security')), 'HSTS is missing');

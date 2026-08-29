@@ -57,6 +57,9 @@ describe('privacy and performance contract', () => {
     expect(config.navigationFallback).toBeUndefined();
     expect(config.globalHeaders?.['Content-Security-Policy']).toContain("default-src 'self'");
     expect(config.globalHeaders?.['Permissions-Policy']).toContain('camera=()');
+    // Chrome does not support this directive. Keeping it out of the deployment
+    // header prevents a console warning on every cold page load.
+    expect(config.globalHeaders?.['Permissions-Policy']).not.toContain('web-share=()');
     expect(config.routes).toContainEqual(expect.objectContaining({
       route: '/assets/*',
       headers: expect.objectContaining({ 'Cache-Control': expect.stringContaining('immutable') }),
