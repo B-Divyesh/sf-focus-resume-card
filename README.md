@@ -72,10 +72,12 @@ options, and background files.
 The client handles a real `429 Retry-After` response from the Sociobot billing
 API without blocking the free workflow. Shared gateway policy is operated by
 Sociobot and is not a product-server promise made by this static repository.
-The required live allowance is recorded in
+The enforced live allowance is 13 verification requests and 7 checkout
+requests per 60-second window. It is recorded in
 `.factory/gateway-rate-limit-contract.json`; `npm run test:gateway` probes the
-real verify and checkout endpoints and fails unless each returns a real 429
-with `Retry-After` after its allowance.
+real endpoints and requires requests 14 and 8 to return `429`, a positive
+`Retry-After`, and `Cache-Control: no-store`. A blocked checkout must not
+create a redirect.
 
 ## Install the extension locally
 

@@ -13,14 +13,14 @@
       "id": "license-verify",
       "method": "GET",
       "path": "/products/focus-resume-card/verify",
-      "allowance": 12,
+      "allowance": 13,
       "normalStatus": 200
     },
     {
       "id": "checkout",
       "method": "GET",
       "path": "/products/focus-resume-card/checkout",
-      "allowance": 6,
+      "allowance": 7,
       "normalStatus": 303
     }
   ]

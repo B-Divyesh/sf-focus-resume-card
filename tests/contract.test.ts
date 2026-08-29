@@ -121,11 +121,21 @@ describe('billing response policy', () => {
     const extensionClient = await readFile('src/entrypoints/options/main.ts', 'utf8');
     expect(siteClient).toContain("response.status === 429");
     expect(extensionClient).toContain("response.status === 429");
-    const contract = JSON.parse(await readFile('.factory/gateway-rate-limit-contract.json', 'utf8')) as { windowSeconds: number; routes: Array<{ id: string; allowance: number }> };
+    const contract = JSON.parse(await readFile('.factory/gateway-rate-limit-contract.json', 'utf8')) as {
+      windowSeconds: number;
+      response: { status: number; retryAfter: string; cacheControl: string };
+      routes: Array<{ id: string; allowance: number; normalStatus: number }>;
+    };
     expect(contract.windowSeconds).toBe(60);
-    expect(contract.routes).toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'license-verify', allowance: 12 }),
-      expect.objectContaining({ id: 'checkout', allowance: 6 }),
-    ]));
+    expect(contract.response).toEqual({
+      status: 429,
+      retryAfter: 'a positive integer number of seconds until another request may be made',
+      cacheControl: 'no-store',
+    });
+    expect(contract.routes).toEqual([
+      expect.objectContaining({ id: 'license-verify', allowance: 13, normalStatus: 200 }),
+      expect.objectContaining({ id: 'checkout', allowance: 7, normalStatus: 303 }),
+    ]);
+    expect(contract.routes.map(({ allowance }) => allowance + 1)).toEqual([14, 8]);
   });
 });
