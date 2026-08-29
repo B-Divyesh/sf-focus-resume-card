@@ -119,13 +119,16 @@ describe('billing response policy', () => {
   it('documents the response policy and keeps 429 handling in both clients', async () => {
     const siteClient = await readFile('site/main.ts', 'utf8');
     const extensionClient = await readFile('src/entrypoints/options/main.ts', 'utf8');
+    const gatewayProbe = await readFile('scripts/gateway-rate-limit-check.mjs', 'utf8');
     expect(siteClient).toContain("response.status === 429");
     expect(extensionClient).toContain("response.status === 429");
     const contract = JSON.parse(await readFile('.factory/gateway-rate-limit-contract.json', 'utf8')) as {
+      scope: string;
       windowSeconds: number;
       response: { status: number; retryAfter: string; cacheControl: string };
-      routes: Array<{ id: string; allowance: number; normalStatus: number }>;
+      routes: Array<{ id: string; method: string; path: string; allowance: number; normalStatus: number }>;
     };
+    expect(contract.scope).toBe('trusted client IP plus product slug');
     expect(contract.windowSeconds).toBe(60);
     expect(contract.response).toEqual({
       status: 429,
@@ -133,9 +136,15 @@ describe('billing response policy', () => {
       cacheControl: 'no-store',
     });
     expect(contract.routes).toEqual([
-      expect.objectContaining({ id: 'license-verify', allowance: 13, normalStatus: 200 }),
-      expect.objectContaining({ id: 'checkout', allowance: 7, normalStatus: 303 }),
+      expect.objectContaining({ id: 'license-verify', method: 'GET', path: '/products/focus-resume-card/verify', allowance: 13, normalStatus: 200 }),
+      expect.objectContaining({ id: 'checkout', method: 'GET', path: '/products/focus-resume-card/checkout', allowance: 7, normalStatus: 303 }),
     ]);
     expect(contract.routes.map(({ allowance }) => allowance + 1)).toEqual([14, 8]);
+    // The live probe is intentionally manual-redirected: a 429 must be
+    // observable at the gateway and must never create a Dodo checkout.
+    expect(gatewayProbe).toContain("redirect: 'manual'");
+    expect(gatewayProbe).toContain("blocked?.status === contract.response.status");
+    expect(gatewayProbe).toContain("blocked.cacheControl ?? '').includes(contract.response.cacheControl)");
+    expect(gatewayProbe).toContain("if (route.id === 'checkout') requireCondition(!blocked.location");
   });
 });
