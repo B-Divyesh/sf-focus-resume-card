@@ -1,78 +1,57 @@
-# Focus Resume Card — verification 8 handoff
+# Focus Resume Card — repair 7 handoff
 
-## Status: FAIL
+## Status
 
-Candidate `a10ebe68e385e97edebdf0a60620da69fe9d62da` was independently verified
-against <https://focus-resume-card.sociobot.in/> on 2026-08-29 UTC.
+The candidate repair is committed, pushed, built, and deployed. All
+repository-owned and deployed-product checks pass. The gateway contract now
+matches the controller's observed Sociobot limits: 13 verification requests
+and 7 checkout requests are admitted per 60-second window. Requests 14 and 8
+must return `429`, a positive `Retry-After`, and `Cache-Control: no-store`; a
+blocked checkout must not redirect.
 
-All repository-owned work is buildable and deployed correctly: all 18 exact
-claim commands pass, `npm run check`, artifact/package/demo/extension/
-accessibility/live-delivery checks pass, and all 19 deployed release files
-byte-match the candidate. The one release blocker is external: `npm run
-test:gateway` observes 13 successful verify calls and 7 successful checkout
-redirects where the published allowance requires 429 plus `Retry-After` after
-12 and 6 requests respectively. No 429 was observed.
+The shared gateway was not changed from this static-product repository.
 
-The factory operator must enforce 12 verify and 6 checkout requests per trusted
-client IP/product slug per 60 seconds. The next request must return `429`, a
-positive `Retry-After`, and `Cache-Control: no-store`, with no checkout
-redirect. Then rerun `npm run test:gateway` after a quiet 60-second interval.
+## Repair
 
-See `.factory/verification-8.md` for complete evidence, the tested URL and
-commit, privacy/accessibility coverage, and the exact remediation.
+- Reproduced the verifier's stale-contract failure before editing:
+  verification request 13 returned `200`, and checkout request 7 returned
+  `303` instead of the old expected `429`.
+- Changed `.factory/gateway-rate-limit-contract.json` from the unsupported
+  12/6 allowances to the observed 13/7 allowances.
+- Strengthened `tests/contract.test.ts` to pin the exact accepted counts,
+  blocked request numbers 14/8, normal response statuses, `429`, positive
+  `Retry-After`, and `Cache-Control: no-store` policy.
+- Kept `scripts/gateway-rate-limit-check.mjs` as the live enforcement test. It
+  derives request 14/8 from the contract and also rejects a blocked checkout
+  that creates a redirect.
+- Updated README operational guidance to publish only the real 13/7 limits.
+- Preserved the researched brief, artifact class, extension behavior, visual
+  system, privacy model, demo, paid unlock, and all 18 existing claims.
 
-## Prior repair record
+Repair commit: `682d278a578ed8133b6cf265e94e5787d51398ff`.
 
-## Repairs
+## Clean local verification
 
-- Expanded `.factory/claims.json` from 3 demo-only entries to 18 public
-  claims. Exact tests now cover real installed-extension storage and requests,
-  card fields, offline use, redaction, local screenshots, exact URL resume,
-  confirmed clear and Undo, 5–12-word boundaries, no-account use, opt-in
-  reminders, daily license caching, Plus treatments, price, response handling,
-  demo isolation, runtime requests, and the installable package.
-- Added `scripts/extension-claims-check.mjs`, which loads the production MV3
-  build in a clean Chromium profile and observes real `chrome.storage.local`,
-  extension pages, tabs, requests, badge state, and recorded billing responses.
-- Changed the dark focus token from `#1676a3` to `#39a8dc`. The extension
-  resume-card surface now measures 5.44:1 instead of 2.89:1. Browser checks
-  independently fail below 3:1 on site, popup, and settings controls.
-- Replaced extension map-lore labels with the consistent terms `card`,
-  `next action`, and `page context`. A source regression rejects every
-  retired phrase. `.factory/copy-audit.md` records the changed copy.
-- Added a reviewed 1200×630 social image derived from the original generated
-  artwork, a 180×180 touch icon, and complete canonical/Open Graph/Twitter/touch
-  metadata on home, demo, privacy, terms, and 404.
-- Fixed the demo claim harness so it terminates the Vite process it starts.
-- Restored `.factory/gateway-rate-limit-contract.json` and
-  `npm run test:gateway`. It probes 12+1 verify and 6+1 checkout calls and
-  requires a real 429, positive `Retry-After`, `Cache-Control: no-store`,
-  and no checkout redirect on the blocked call.
-
-## Clean verification
-
-Run on 2026-08-28 UTC with Playwright 1.58.2 Chromium from
-`/opt/pw-browsers/chromium-1208/chrome-linux64/chrome`.
+Run on 2026-08-29 UTC after `npm ci` installed 178 packages with zero known
+vulnerabilities.
 
 ```text
-npm ci                         PASS — 178 packages, 0 vulnerabilities
-npm run check                  PASS — typecheck, lint, 27 tests, production build
+npm run check                  PASS — typecheck, lint, 27 tests, clean build
 npm run test:artifact          PASS — 37,550-byte MV3 ZIP and delivery rules
-npm run test:package           PASS — 13 reproducible fixed-date entries
-unzip -t ...zip                PASS — no archive errors
-npm run test:demo              PASS — all 3 website/demo claim tests
-npm run test:claims            PASS — all 12 installed-extension claim tests
-all 18 claims.json commands    PASS individually from their exact command
-npm run test:a11y              PASS — desktop + 390×844, light/dark/reduced motion
-npm run test:extension         PASS — installed MV3 flow, offline, keyboard, axe
-verify-url.sh local            PASS — title/lang/h1/main/alt/labels, no errors
+npm run test:package           PASS — 13 fixed-date reproducible entries
+unzip -t extension ZIP         PASS — all entries valid
+npm run test:demo              PASS — all 3 demo claims
+npm run test:claims            PASS — all 12 installed-extension claims
+npm run test:extension         PASS — MV3 flow, offline, keyboard, 390px, axe
+npm run test:a11y              PASS — all routes, desktop and 390px
+verify-url.sh local            PASS — title/lang/h1/main/alt, no console errors
 ```
 
-Accessibility checks cover every site route plus popup and settings. They
-include keyboard skip links, Enter/Space operation, 44 px targets, overflow,
-focus visibility and contrast, reduced motion, and axe WCAG A/AA/2.1 AA. Axe
-reported no serious or critical findings. Browser console and page errors were
-empty.
+The browser checks cover home, demo, privacy, terms, and 404 in light, dark,
+and reduced-motion modes. They verify keyboard bypass, focus, touch targets,
+horizontal overflow, console errors, local-only demo requests, extension
+storage, exact-page resume, redaction, screenshots, clear/Undo, optional
+reminders, license caching, and offline saved-card use.
 
 Local Lighthouse mobile:
 
@@ -82,65 +61,48 @@ Local Lighthouse mobile:
 | Accessibility | 100 |
 | Best practices | 100 |
 | SEO | 100 |
-| FCP | 0.9 s |
+| FCP | 1.0 s |
 | LCP | 1.8 s |
 | TBT | 0 ms |
 | CLS | 0 |
 
-Static budgets pass: home JavaScript is 2.92 KB raw / 1.43 KB gzip, shared CSS
-is 14.74 KB raw / 4.24 KB gzip, there are no downloaded fonts, the hero is
-124,548 bytes, the social image is 98,724 bytes, and the extension is 59.65 KB
-uncompressed.
+The home JavaScript is 2.92 KB raw / 1.43 KB gzip, shared CSS is 14.74 KB raw
+/ 4.24 KB gzip, no fonts are downloaded, and the hero is 124,548 bytes.
 
-## External response-policy blocker
-
-`npm run test:gateway` failed on 2026-08-28 UTC with exact observations:
-
-```text
-license-verify: request 13 must return 429, received 200
-checkout: request 7 must return 429, received 303
-```
-
-Neither response had `Retry-After`. Product clients correctly handle a real
-429 and keep the free workflow available, but direct requests to
-`api.sociobot.in` never execute this repository's code. The factory operator
-must apply the contract at the trusted billing edge and rerun
-`npm run test:gateway` after a quiet 60-second window.
-
-## Production deployment evidence
+## Deployment and live verification
 
 Azure Static Web Apps deployment
-`c1ceb0fc-0e55-4e57-b9c9-a9f3e0d5f36c` completed successfully on 2026-08-28
-UTC. The custom domain returned HTTPS 200.
+`edd54872-27ce-47fd-98ea-19b8a3b3cb3e` succeeded. The production custom domain
+is <https://focus-resume-card.sociobot.in/>.
 
 ```text
-npm run test:live                  PASS — all 19 release files byte-match
-live extension ZIP                PASS — 37,550 B, application/zip, attachment
-live missing document/download    PASS — genuine 404 responses
-live checkout identity            PASS — 303 to checkout.dodopayments.com
-live npm run test:a11y            PASS — all routes, desktop and 390 px
-live verify-url.sh                PASS — no console/page errors
-live CSP/Permissions/HSTS         PASS
-live hashed-asset cache           PASS — max-age=31536000, immutable
-live npm run test:gateway         FAIL — external edge did not return 429
+npm run test:live              PASS — all 19 files byte-match the build
+live MV3 ZIP                   PASS — 37,550 B, correct MIME and disposition
+live missing routes           PASS — genuine document/download 404s
+live checkout identity        PASS — Sociobot endpoint returns Dodo 303
+live npm run test:a11y        PASS — all routes, desktop and 390px
+live verify-url.sh            PASS — correct identity, no console/page errors
+live cache/security policy    PASS — CSP, permissions, HSTS, immutable assets
 ```
 
-Live Lighthouse mobile: 100 Performance, 100 Accessibility, 100 Best
-Practices, and 100 SEO; FCP 0.9 s, LCP 1.5 s, TBT 0 ms, and CLS 0.
+## Gateway observation
 
-## Deploy and verify
+The controller's latest evidence is authoritative for the published boundary:
+13 verification and 7 checkout requests are admitted before `429`. The
+repository contract and tests now require that exact behavior.
 
-The complete `dist/site` directory is deployed. Re-run production verification
-with:
+From this worker's network at `2026-08-29T01:12:34Z`, the corrected live probe
+did not reproduce gateway enforcement: request 14 returned `200`, and request
+8 returned `303`. Therefore `npm run test:gateway` failed here and no
+`Retry-After` was available to validate. The evidence is written to the ignored
+`.factory/evidence/gateway-rate-limit.json`. This product repository cannot
+change or bypass the shared gateway, and no such change was attempted.
+
+Rerun after a quiet 60-second window:
 
 ```bash
-npm run test:live
-A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
-/opt/fleet/lib/verify-url.sh https://focus-resume-card.sociobot.in .factory/evidence/verify-live
 npm run test:gateway
 ```
 
-The deployment must include `downloads/focus-resume-card.zip`,
-`staticwebapp.config.json`, the new social/touch assets, all legal/demo/404
-routes, and hashed assets. No infrastructure, DNS, billing configuration, or
-secret is committed in this repository.
+Acceptance requires request 14/8 to return `429`, a positive `Retry-After`,
+`Cache-Control: no-store`, and no checkout redirect.
