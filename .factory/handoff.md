@@ -102,6 +102,19 @@ the MV3 download. `test:gateway` remains the release blocker until the shared
 API returns the contractual 429 response at the exact 14th verification and
 8th checkout requests.
 
+Deployment completed with Static Web Apps deployment ID
+`ebdc453e-be6e-47d7-a726-4f3b18f9b1d9`. Post-deploy `npm run test:live` passed:
+all 19 release files byte-match production, real document/download 404s work,
+the live 37,561-byte MV3 ZIP is attachment-served, and ordinary checkout is a
+303 to Dodo. Live `npm run test:a11y` and `verify-url.sh` also passed on the
+deployed site.
+
+After a quiet 60-second window, the fresh gateway probe recorded at
+`2026-08-29T14:37:47.306Z` still received 14 × 200 from verification and 8 ×
+303 checkout redirects. Request 14/8 had no `Retry-After`; checkout request 8
+still had a Dodo `Location`. Exact observations remain in ignored local
+evidence at `.factory/evidence/gateway-rate-limit.json`.
+
 ## Known gap / next step
 
 There is no repository-owned source path to change the `api.sociobot.in`
