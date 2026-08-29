@@ -1,17 +1,27 @@
-# Focus Resume Card — repair 6 handoff
+# Focus Resume Card — verification 8 handoff
 
-## Status
+## Status: FAIL
 
-The repository-owned findings from independent verification commit
-`19348dbba96c1869657f8ac03a3732c1221d8916` are repaired and covered by
-regressions. Repair commit `df1842e` was pushed and deployed to the production
-custom domain.
+Candidate `a10ebe68e385e97edebdf0a60620da69fe9d62da` was independently verified
+against <https://focus-resume-card.sociobot.in/> on 2026-08-29 UTC.
 
-Release acceptance remains blocked by one external factory-service condition:
-the shared Sociobot billing gateway does not enforce its documented request
-allowances. This static repository cannot configure that service, and
-`AGENTS.md` forbids changing billing or infrastructure from the product repo.
-The repair restores an exact live probe so this condition cannot be hidden.
+All repository-owned work is buildable and deployed correctly: all 18 exact
+claim commands pass, `npm run check`, artifact/package/demo/extension/
+accessibility/live-delivery checks pass, and all 19 deployed release files
+byte-match the candidate. The one release blocker is external: `npm run
+test:gateway` observes 13 successful verify calls and 7 successful checkout
+redirects where the published allowance requires 429 plus `Retry-After` after
+12 and 6 requests respectively. No 429 was observed.
+
+The factory operator must enforce 12 verify and 6 checkout requests per trusted
+client IP/product slug per 60 seconds. The next request must return `429`, a
+positive `Retry-After`, and `Cache-Control: no-store`, with no checkout
+redirect. Then rerun `npm run test:gateway` after a quiet 60-second interval.
+
+See `.factory/verification-8.md` for complete evidence, the tested URL and
+commit, privacy/accessibility coverage, and the exact remediation.
+
+## Prior repair record
 
 ## Repairs
 
