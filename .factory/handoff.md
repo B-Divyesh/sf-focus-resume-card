@@ -78,4 +78,8 @@ image is 124,548 B, and the MV3 extension is 59.65 kB unpacked.
 The configured artifact remains a static landing site plus packaged MV3
 extension. `npm run build` writes the deployable root to `dist/site`; deploy
 that directory with `/opt/fleet/lib/deploy-static.sh focus-resume-card dist/site`.
+The static deployment completed successfully on 2026-08-29 as Azure Static Web
+Apps deployment `bc9476d1-c268-4419-8037-9072d06d72ab`; its post-deploy live
+delivery check passed. The post-deploy gateway probe still failed with 200/303
+at the two documented boundaries, so the static deployment is not a release.
 Do not release the candidate until the shared gateway probe passes.
