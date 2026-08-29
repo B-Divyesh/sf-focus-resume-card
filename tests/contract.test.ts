@@ -116,6 +116,22 @@ describe('privacy and performance contract', () => {
     expect(new Set(claims.map(({ id }) => id)).size).toBe(claims.length);
     for (const claim of claims) expect(claim.test, claim.id).toContain(`@claim:${claim.id}`);
   });
+
+  it('maps each reported public promise to an installed-extension regression', async () => {
+    const claims = JSON.parse(await readFile('.factory/claims.json', 'utf8')) as Array<{ id: string; test: string }>;
+    const claimRunner = await readFile('scripts/extension-claims-check.mjs', 'utf8');
+    const sources = {
+      'no-alerts-or-schedules': ['src/entrypoints/options/index.html', 'No notifications, sounds, or schedules.'],
+      'revoked-license-locks-plus': ['site/terms/index.html', 'license is revoked'],
+      'clear-local-data': ['src/entrypoints/options/index.html', 'Clearing extension data removes the active card, preferences, and license from this device.'],
+      'screenshot-compression': ['src/entrypoints/popup/main.ts', 'Optional; compressed and stored locally'],
+    } as const;
+    for (const [id, [file, promise]] of Object.entries(sources)) {
+      expect(claims.find((claim) => claim.id === id)?.test, id).toContain(`@claim:${id}`);
+      expect(await readFile(file, 'utf8'), id).toContain(promise);
+      expect(claimRunner, id).toContain(`'@claim:${id}'`);
+    }
+  });
 });
 
 describe('billing response policy', () => {

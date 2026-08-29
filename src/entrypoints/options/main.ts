@@ -1,5 +1,5 @@
 import './style.css';
-import { CARD_KEY, DEFAULT_PREFERENCES, LICENSE_CACHE_KEY, LICENSE_KEY, PREFS_KEY, isLicenseFresh, type LicenseCache, type Theme } from '../../shared/model';
+import { CARD_KEY, LICENSE_CACHE_KEY, LICENSE_KEY, PREFS_KEY, isLicenseFresh, type LicenseCache, type Theme } from '../../shared/model';
 import { rateLimitMessage, retryAfterSeconds } from '../../shared/rate-limit';
 import { getPreferences, setPreferences } from '../../shared/storage';
 
@@ -123,7 +123,6 @@ async function initialize() {
     await chrome.storage.local.remove([CARD_KEY, PREFS_KEY]);
     localStorage.removeItem(LICENSE_KEY);
     localStorage.removeItem(LICENSE_CACHE_KEY);
-    await chrome.storage.local.set({ [PREFS_KEY]: DEFAULT_PREFERENCES });
     location.reload();
   });
 }

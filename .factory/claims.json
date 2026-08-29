@@ -98,6 +98,13 @@
     "sandbox": "A clean installed MV3 profile observes an empty badge by default and a dot only after the stored preference is enabled."
   },
   {
+    "id": "no-alerts-or-schedules",
+    "claim": "The quiet toolbar dot uses no notifications, sounds, or schedules",
+    "where": "Extension settings",
+    "test": "npm run test:claims -- --grep @claim:no-alerts-or-schedules",
+    "sandbox": "A clean installed MV3 profile checks the running manifest for no notification or alarm permission and confirms settings expose no audio or scheduled-control UI."
+  },
+  {
     "id": "daily-license-check",
     "claim": "A stored Plus license is verified at most once per day",
     "where": "Privacy page and README",
@@ -110,6 +117,27 @@
     "where": "Landing page, settings, terms, and README",
     "test": "npm run test:claims -- --grep @claim:plus-treatments",
     "sandbox": "The installed settings page starts with Plus choices disabled, unlocks from a recorded valid response, and persists Night."
+  },
+  {
+    "id": "revoked-license-locks-plus",
+    "claim": "A revoked license disables Plus settings on this device",
+    "where": "Extension settings and terms",
+    "test": "npm run test:claims -- --grep @claim:revoked-license-locks-plus",
+    "sandbox": "The installed settings page receives a recorded revoked license response, disables Plus controls, and resets paid preferences while the free card remains available."
+  },
+  {
+    "id": "clear-local-data",
+    "claim": "Clearing extension data removes the card, preferences, and license from this device",
+    "where": "Extension settings and privacy page",
+    "test": "npm run test:claims -- --grep @claim:clear-local-data",
+    "sandbox": "A clean installed MV3 profile creates every local record, confirms the clear action, and observes the card, preferences, license, and cached verdict removed."
+  },
+  {
+    "id": "screenshot-compression",
+    "claim": "Screenshots are compressed during capture and stored locally",
+    "where": "Extension capture form, privacy page, and README",
+    "test": "npm run test:claims -- --grep @claim:screenshot-compression",
+    "sandbox": "A clean installed MV3 profile captures a 1920 by 1080 fixture and observes a locally stored JPEG reduced to 960 by 540 pixels."
   },
   {
     "id": "license-rate-limit",

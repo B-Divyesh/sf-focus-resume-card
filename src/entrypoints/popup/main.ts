@@ -213,11 +213,19 @@ async function renderCapture() {
       saveButton.disabled = true;
       saveButton.textContent = 'Saving card…';
       setStatus('');
-      try {
-        let screenshot: string | null = null;
-        if (requireElement<HTMLInputElement>('keep-screenshot').checked) {
+      let screenshot: string | null = null;
+      const screenshotInput = requireElement<HTMLInputElement>('keep-screenshot');
+      if (screenshotInput.checked) {
+        try {
           screenshot = await compactScreenshot(await chrome.tabs.captureVisibleTab({ format: 'jpeg', quality: 78 }));
+        } catch {
+          saveButton.disabled = false;
+          saveButton.textContent = 'Save resume card';
+          setStatus('Could not capture the screenshot. Clear “Visible screenshot” and save again.', 'error');
+          return;
         }
+      }
+      try {
         const card = createCard({
           url: tab.url!,
           title: requireElement<HTMLInputElement>('keep-title').checked ? (tab.title || safeHostname(tab.url!)) : null,
@@ -230,10 +238,10 @@ async function renderCapture() {
         await setPreferences({ ...preferences, focusStartedAt: null });
         renderCard(card);
         setStatus('Resume card saved locally.', 'success');
-      } catch (error) {
+      } catch {
         saveButton.disabled = false;
         saveButton.textContent = 'Save resume card';
-        setStatus(error instanceof Error ? error.message : 'The card could not be saved. Try without a screenshot.', 'error');
+        setStatus('The card could not be saved. Try again.', 'error');
       }
     });
     showOnly(captureView);

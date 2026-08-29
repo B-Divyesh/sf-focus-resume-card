@@ -14,8 +14,12 @@ const tags = [
   '@claim:exact-page-resume',
   '@claim:no-account',
   '@claim:quiet-reminder',
+  '@claim:no-alerts-or-schedules',
   '@claim:daily-license-check',
   '@claim:plus-treatments',
+  '@claim:revoked-license-locks-plus',
+  '@claim:clear-local-data',
+  '@claim:screenshot-compression',
   '@claim:plus-price',
   '@claim:clear-undo',
 ];
@@ -140,6 +144,46 @@ try {
     pass('@claim:screenshot-card');
   }
 
+  if (selected.includes('@claim:screenshot-compression')) {
+    await resetStorage();
+    const capture = await context.newPage();
+    await capture.addInitScript(() => {
+      chrome.tabs.query = async () => [{ id: 1, url: 'https://example.test/screenshot', title: 'Screenshot compression claim' }];
+      chrome.scripting.executeScript = async () => [{ result: '' }];
+      chrome.tabs.captureVisibleTab = async () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const drawing = canvas.getContext('2d');
+        if (!drawing) throw new Error('Could not create screenshot fixture.');
+        drawing.fillStyle = '#17312B';
+        drawing.fillRect(0, 0, canvas.width, canvas.height);
+        drawing.fillStyle = '#B84A32';
+        drawing.fillRect(120, 120, 1680, 840);
+        drawing.fillStyle = '#F3EEDC';
+        drawing.fillRect(240, 240, 1440, 600);
+        return canvas.toDataURL('image/png');
+      };
+    });
+    await capture.goto(`${extensionOrigin}/popup.html`);
+    await capture.getByLabel('Next physical action').fill(card.nextAction);
+    await capture.getByLabel('Visible screenshot').check();
+    await capture.getByRole('button', { name: 'Save resume card' }).click();
+    await capture.getByRole('heading', { name: card.nextAction }).waitFor();
+    const stored = await worker.evaluate(() => chrome.storage.local.get('focusResumeCard'));
+    const screenshot = stored.focusResumeCard?.screenshot;
+    requireCondition(typeof screenshot === 'string' && screenshot.startsWith('data:image/jpeg;base64,'), '@claim:screenshot-compression: screenshot was not re-encoded as a local JPEG');
+    const dimensions = await capture.evaluate(async (dataUrl) => {
+      const image = new Image();
+      image.src = dataUrl;
+      await image.decode();
+      return { width: image.naturalWidth, height: image.naturalHeight };
+    }, screenshot);
+    requireCondition(dimensions.width === 960 && dimensions.height === 540, `@claim:screenshot-compression: saved ${dimensions.width}×${dimensions.height} instead of 960×540`);
+    await capture.close();
+    pass('@claim:screenshot-compression');
+  }
+
   if (selected.includes('@claim:exact-page-resume')) {
     await resetStorage();
     await seedCard();
@@ -174,6 +218,18 @@ try {
     const on = await worker.evaluate(() => chrome.action.getBadgeText({}));
     requireCondition(on === '•', `@claim:quiet-reminder: opt-in reminder did not appear (${on})`);
     pass('@claim:quiet-reminder');
+  }
+
+  if (selected.includes('@claim:no-alerts-or-schedules')) {
+    const manifest = await worker.evaluate(() => chrome.runtime.getManifest());
+    const permissions = manifest.permissions ?? [];
+    requireCondition(!permissions.includes('notifications') && !permissions.includes('alarms'), '@claim:no-alerts-or-schedules: the running extension requests notification or alarm permission');
+    const options = await context.newPage();
+    await options.goto(`${extensionOrigin}/options.html`);
+    await options.getByText('No notifications, sounds, or schedules.').waitFor();
+    requireCondition(await options.locator('audio, video, input[type="time"], input[type="datetime-local"]').count() === 0, '@claim:no-alerts-or-schedules: settings expose a sound or scheduled-control UI');
+    await options.close();
+    pass('@claim:no-alerts-or-schedules');
   }
 
   if (selected.includes('@claim:daily-license-check')) {
@@ -218,6 +274,55 @@ try {
     requireCondition(preferences.focusResumePreferences.theme === 'night', '@claim:plus-treatments: selected Night treatment was not stored');
     await options.close();
     pass('@claim:plus-treatments');
+  }
+
+  if (selected.includes('@claim:revoked-license-locks-plus')) {
+    await resetStorage();
+    await seedCard(card, { focusStartedAt: null, quietBadge: true, theme: 'night' });
+    await context.unroute('https://api.sociobot.in/api/v1/products/focus-resume-card/verify?*');
+    await context.route('https://api.sociobot.in/api/v1/products/focus-resume-card/verify?*', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"valid":false,"reason":"revoked"}' }));
+    const options = await context.newPage();
+    await options.goto(`${extensionOrigin}/options.html`);
+    await options.evaluate(() => {
+      localStorage.setItem('sb_license:focus-resume-card', 'revoked-claim-license');
+      localStorage.setItem('sb_license_cache:focus-resume-card', JSON.stringify({ token: 'revoked-claim-license', valid: true, checkedAt: Date.now() - 86_400_001 }));
+    });
+    await options.reload();
+    await options.getByText('License no longer active. Free resume cards still work.').waitFor();
+    requireCondition(await options.locator('input[value="night"]').isDisabled(), '@claim:revoked-license-locks-plus: Night stayed enabled after revocation');
+    const preferences = await worker.evaluate(() => chrome.storage.local.get('focusResumePreferences'));
+    requireCondition(preferences.focusResumePreferences?.theme === 'field' && preferences.focusResumePreferences?.quietBadge === false, '@claim:revoked-license-locks-plus: paid preferences were not reset');
+    const popup = await openPopup();
+    await popup.getByRole('heading', { name: card.nextAction }).waitFor();
+    await popup.close();
+    await options.evaluate(() => localStorage.clear());
+    await options.close();
+    pass('@claim:revoked-license-locks-plus');
+  }
+
+  if (selected.includes('@claim:clear-local-data')) {
+    await resetStorage();
+    await seedCard(card, { focusStartedAt: Date.now(), quietBadge: true, theme: 'night' });
+    const options = await context.newPage();
+    await options.goto(`${extensionOrigin}/options.html`);
+    await options.evaluate(() => {
+      localStorage.setItem('sb_license:focus-resume-card', 'clear-claim-license');
+      localStorage.setItem('sb_license_cache:focus-resume-card', JSON.stringify({ token: 'clear-claim-license', valid: true, checkedAt: Date.now() }));
+    });
+    options.once('dialog', (dialog) => void dialog.accept());
+    await Promise.all([
+      options.waitForEvent('load'),
+      options.getByRole('button', { name: 'Clear card and preferences' }).click(),
+    ]);
+    const stored = await worker.evaluate(() => chrome.storage.local.get(['focusResumeCard', 'focusResumePreferences']));
+    requireCondition(!stored.focusResumeCard && !stored.focusResumePreferences, '@claim:clear-local-data: card or preferences remained in extension storage');
+    const localRecords = await options.evaluate(() => ({
+      license: localStorage.getItem('sb_license:focus-resume-card'),
+      cache: localStorage.getItem('sb_license_cache:focus-resume-card'),
+    }));
+    requireCondition(localRecords.license === null && localRecords.cache === null, '@claim:clear-local-data: license or cached verdict remained in local storage');
+    await options.close();
+    pass('@claim:clear-local-data');
   }
 
   if (selected.includes('@claim:plus-price')) {

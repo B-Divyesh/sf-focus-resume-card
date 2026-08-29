@@ -125,6 +125,7 @@ try {
   await capture.addInitScript(() => {
     chrome.tabs.query = async () => [{ id: 1, url: 'https://example.test/focus-clock', title: 'Focus clock regression' }];
     chrome.scripting.executeScript = async () => [{ result: '' }];
+    chrome.tabs.captureVisibleTab = async () => { throw new Error('Screenshot capture failed.'); };
   });
   await capture.goto(`chrome-extension://${extensionId}/popup.html`);
   const timerButton = capture.getByRole('button', { name: 'Start focus clock' });
@@ -134,6 +135,14 @@ try {
   await capture.getByText('Focus clock started. It stays only on this device.').waitFor();
   const clockPreferences = await worker.evaluate(() => chrome.storage.local.get('focusResumePreferences'));
   if (typeof clockPreferences.focusResumePreferences?.focusStartedAt !== 'number') throw new Error('Focus clock did not store its start timestamp.');
+  await capture.getByLabel('Next physical action').fill(action);
+  await capture.getByLabel('Visible screenshot').check();
+  await capture.getByRole('button', { name: 'Save resume card' }).click();
+  await capture.getByText('Could not capture the screenshot. Clear “Visible screenshot” and save again.').waitFor();
+  if (await capture.getByRole('button', { name: 'Save resume card' }).isDisabled()) throw new Error('Screenshot failure left Save resume card disabled.');
+  await capture.getByLabel('Visible screenshot').uncheck();
+  await capture.getByRole('button', { name: 'Save resume card' }).click();
+  await capture.getByRole('heading', { name: action }).waitFor();
 
   const options = await context.newPage();
   watchPage(options);
@@ -159,7 +168,7 @@ try {
   await offlinePopup.getByRole('heading', { name: action }).waitFor();
   await context.setOffline(false);
   if (browserErrors.length) throw new Error(`Extension console errors: ${browserErrors.join('; ')}`);
-  console.log('extension smoke: render, resume, reopen, clear, focus clock feedback, settings, keyboard bypass, 390px targets, offline shell, axe, and console passed');
+  console.log('extension smoke: render, resume, reopen, clear, screenshot recovery, focus clock feedback, settings, keyboard bypass, 390px targets, offline shell, axe, and console passed');
 } finally {
   await context.close();
   await new Promise((resolve, reject) => targetServer.close((error) => error ? reject(error) : resolve()));
