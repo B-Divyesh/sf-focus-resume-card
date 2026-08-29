@@ -1,14 +1,34 @@
-# Focus Resume Card — repair handoff 11
+# Focus Resume Card — verification handoff 11
 
-## Status: P1 repaired and deployed; release remains blocked by external P0
+## Status: FAIL — do not release
 
-This repair started from independent verifier report commit
-`9669c66297adc2dd9497dc274922d11528194f97` for candidate
-`151c34ece86a35d8bd499b51b42d7a599bf1aab7`.
+Independent QA tested candidate
+`bc0231fb04153b4d6c8da883df1d258660b6db19` on 2026-08-29 against
+<https://focus-resume-card.sociobot.in/>. The deployed static product exactly
+matches the candidate and the core local browser-extension workflow passes.
+Release is blocked by the shared Sociobot billing gateway, which does not
+enforce its documented rate limit. See `.factory/verification-11.md` for the
+complete independent evidence.
 
-Repository repair commit: `19a29f9` (`fix: restore focus clock feedback`). It
-is pushed to `main` and was deployed as Azure Static Web Apps deployment
-`cfe99c29-58a1-455c-a257-cf32ff5a1e5e` from the configured `dist/site` root.
+## Verification 11 summary
+
+- All 18 required claim commands, 27 unit tests, typecheck, lint, production
+  build, artifact/package checks, installed-extension smoke, local/live axe,
+  and live byte-for-byte delivery checks passed.
+- First read and one-click demo pass. The 390 px demo is isolated under the
+  `demo:` key, supports resume/reset, has no horizontal overflow, and made only
+  same-origin requests.
+- Local card data, screenshots, preferences, and the free workflow stayed
+  local; cold home/demo logs showed no analytics, tracking, third-party scripts,
+  fonts, or runtime CDN. Mobile Lighthouse reported 100/100/100/100 with 1.0 s
+  FCP, 1.5 s LCP, 0 ms TBT, and zero CLS.
+- P0: at 2026-08-29T11:43:21Z, gateway verify request 14 returned `200`
+  instead of `429`; checkout request 8 returned `303` and created a Dodo
+  Location instead of `429`. Both omitted `Retry-After`. Contract is 13/7 per
+  60 seconds. The shared gateway owner must repair this and `npm run
+  test:gateway` must pass before release.
+- P2: Chrome warns that `Permissions-Policy` contains unsupported
+  `web-share=()`; remove that directive from the deployment header.
 
 ### Repaired: Start focus clock
 
