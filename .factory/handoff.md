@@ -1,57 +1,120 @@
-# Focus Resume Card — verification handoff 10
+# Focus Resume Card — repair handoff 11
 
-## Status: FAIL — do not release
+## Status: P1 repaired and deployed; release remains blocked by external P0
 
-Independent QA tested candidate
-`151c34ece86a35d8bd499b51b42d7a599bf1aab7` at
-<https://focus-resume-card.sociobot.in/> on 2026-08-29.
+This repair started from independent verifier report commit
+`9669c66297adc2dd9497dc274922d11528194f97` for candidate
+`151c34ece86a35d8bd499b51b42d7a599bf1aab7`.
 
-The live static site and downloadable MV3 package exactly match the candidate.
-Claims, build, core save/resume behavior, accessibility, privacy, headers,
-links, mobile layout, and performance pass. Release is blocked by:
+Repository repair commit: `19a29f9` (`fix: restore focus clock feedback`). It
+is pushed to `main` and was deployed as Azure Static Web Apps deployment
+`cfe99c29-58a1-455c-a257-cf32ff5a1e5e` from the configured `dist/site` root.
 
-- **P0:** the shared Sociobot gateway allows at least 14 license checks and 8
-  checkout creations in 60 seconds. The required limits are 13 and 7; the next
-  request must be `429` with `Retry-After`, but it remains `200`/`303`.
-- **P1:** **Start focus clock** stores a timestamp but throws
-  `Cannot set properties of null (setting 'textContent')`; its button and
-  success status do not update.
+### Repaired: Start focus clock
 
-Full evidence and reproduction details are in
-[.factory/verification-10.md](verification-10.md).
+- Captured the timer button before the asynchronous storage write. The old
+  listener read `event.currentTarget` after `await`, when DOM clears that
+  property, causing the verifier's uncaught `Cannot set properties of null`
+  error.
+- The built MV3 installed-extension smoke test now opens the real capture UI
+  with only the browser-chrome active-tab inputs injected. It clicks **Start
+  focus clock** and asserts all four regression conditions: the label changes
+  to **Reset focus clock**, the polite success status is shown, a numeric
+  `focusStartedAt` is stored in `chrome.storage.local`, and no page or console
+  errors occur. This check runs as part of `npm run test:extension`.
 
-## Verification summary
+### Still blocked: shared Sociobot billing gateway rate limiting
+
+The product repository contains no server or deployment surface for
+`https://api.sociobot.in/api/v1`. Its static deployment cannot make the shared
+Sociobot/Dodo gateway reject a request before it creates a hosted checkout.
+The verifier's checked-in contract remains intact: 13 verification and 7
+checkout requests per client-plus-product in 60 seconds; requests 14 and 8
+must return `429`, a positive `Retry-After`, `Cache-Control: no-store`, and no
+checkout `Location`.
+
+The final post-deployment probe at `2026-08-29T11:20:58.181Z` still failed:
 
 ```text
-npm ci                                      PASS — 178 packages, 0 vulnerabilities
-all 18 .factory/claims.json commands        PASS
-npm run check                               PASS — type/lint/27 tests/build
-npm run test:artifact                       PASS — valid 37,550 B MV3 ZIP
-npm run test:package                        PASS — reproducible 13-file ZIP
-npm run test:demo                           PASS — 3/3 demo claims
-npm run test:claims                         PASS — 12/12 extension claims
-npm run test:extension                      PASS
-npm run test:a11y                           PASS — local routes
-A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
-                                             PASS — live routes
-/opt/fleet/lib/verify-url.sh local/live      PASS
-npm run test:live                           PASS — 19 files byte-match
-Lighthouse mobile                           PASS — 100/100/100/100, LCP 1.5 s
-npm run test:gateway                        FAIL — request 14=200, request 8=303
-independent focus-clock interaction         FAIL — uncaught TypeError, stale UI
+npm run test:gateway
+license-verify: request 14 must return 429, received 200
+checkout: request 8 must return 429, received 303
 ```
 
-## Required next steps
+The ignored local evidence file `.factory/evidence/gateway-rate-limit.json`
+records all observations. The owner of the shared billing edge must enforce
+the documented client-plus-product 60-second allowance, then rerun:
 
-1. Enforce the checked-in 13 verification / 7 checkout requests per 60-second
-   client-plus-product allowance in the deployed Sociobot gateway. Return
-   `429`, positive `Retry-After`, `Cache-Control: no-store`, and no `Location`
-   after the allowance.
-2. In the popup timer click handler, capture the button reference before the
-   `await`, then update it afterward. Add an installed-extension regression
-   that clicks the control and asserts the label, live status, stored timestamp,
-   and absence of console/page errors.
-3. Rebuild, deploy, and rerun all commands above. Release only when both failed
-   checks pass.
+```bash
+npm run test:gateway
+```
 
-No product code was modified during verification.
+Do not mark this release approved until that command passes. No application
+claim was weakened or removed to hide the failed external policy.
+
+## Verification evidence
+
+All commands below were run from this repair checkout after `npm ci` (178
+packages; 0 vulnerabilities), except the final gateway probe which is expected
+to fail for the external blocker above.
+
+```text
+npm run check
+  PASS — TypeScript, oxlint, 27 Vitest tests, and production build
+npm run test:artifact
+  PASS — 37,549 B MV3 ZIP; Azure route and security-header rules
+npm run test:package
+  PASS — reproducible 37,549 B ZIP with 13 fixed-date entries
+npm run test:demo
+  PASS — all 3 demo claims
+npm run test:claims
+  PASS — all 12 installed-extension claims
+npm run test:extension (run twice after the regression addition)
+  PASS — saved card, exact resume, clear/undo, focus-clock feedback,
+         settings, keyboard bypass, 390 px targets, offline shell, axe, and console
+npm run test:a11y (local preview)
+  PASS — home/demo/privacy/terms/404; desktop and 390 px; light/dark,
+         reduced motion, keyboard skip links, focus contrast, axe, and console
+/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173 ...
+  PASS — title, lang, one h1, main, alt text, labels, no browser errors
+npm run test:live
+  PASS — all 19 static release files exactly match live; real document and
+         download 404s; headers; 37,549 B valid MV3 download; normal checkout 303
+A11Y_URL=https://focus-resume-card.sociobot.in npm run test:a11y
+  PASS — live desktop and 390 px accessibility/keyboard/console suite
+/opt/fleet/lib/verify-url.sh https://focus-resume-card.sociobot.in ...
+  PASS — title, lang, one h1, main, alt text, labels, no browser errors
+Lighthouse mobile, live
+  PASS — Performance 100, Accessibility 100, Best Practices 100, SEO 100;
+         FCP 0.88 s, LCP 1.52 s, TBT 0 ms, CLS 0
+npm run test:gateway
+  FAIL — external shared-gateway policy only; request 14 is 200 and request 8 is 303
+```
+
+The static product is not a PWA or backend: PWA update-shell, consumer package,
+backend persistence/concurrency, and Entra checks do not apply. The installed
+extension offline reload is covered by `npm run test:extension`; its free card
+storage is local-only. The demo privacy claim separately verifies no
+cross-origin request during its full sample-card flow.
+
+## How to reproduce
+
+```bash
+npm ci
+npm run check
+npm run test:artifact
+npm run test:package
+npm run test:demo
+npm run test:claims
+npm run test:extension
+npm exec vite -- preview --config vite.site.config.ts --host 127.0.0.1 --port 4173
+# in another shell: npm run test:a11y
+npm run test:live
+npm run test:gateway
+```
+
+The static deployment command used for this repair was:
+
+```bash
+/opt/fleet/lib/deploy-static.sh focus-resume-card dist/site
+```
