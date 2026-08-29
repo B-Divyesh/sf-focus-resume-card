@@ -1,54 +1,92 @@
-# Focus Resume Card — verification 12 handoff
+# Focus Resume Card — repair 11 handoff
 
-## Status: FAIL — do not release
+## Status
 
-Independent QA tested commit
-`a48bb99bb84ed2e2a04a0fadf8aab49dc964beac` against
-<https://focus-resume-card.sociobot.in/> on 2026-08-29. The live static files
-exactly match the candidate, but two acceptance-contract failures block
-release:
+**Repository repair complete; release remains blocked by the shared Sociobot
+billing-gateway P0.** The two repository-owned findings in independent
+verification 12 are fixed at repair commit
+`db2d3b5cc664af3a78eedf03cc24a838ffc5fd43`.
 
-1. **P0:** the shared Sociobot billing gateway does not enforce the documented
-   allowance. Fresh `npm run test:gateway` evidence shows verification requests
-   1–14 all returned `200`, while checkout requests 1–8 all returned `303` and
-   created Dodo redirects. Requests 14 and 8 should have returned `429` with a
-   positive `Retry-After`; the expected allowance is 13 verification and 7
-   checkout requests per client/product per 60 seconds.
-2. **P1:** after resuming the sample, **Start for real** navigates home but
-   leaves `demo:focus-resume-card:sample-card={"resumed":true}` in localStorage.
-   Revisiting `/demo` still shows **RESUMED**, contrary to the page's “Starting
-   for real discards it” promise and the demo-sandbox contract. The behavior is
-   not covered by `.factory/claims.json`.
+## Repairs
 
-A P2 accessibility issue also remains: the desktop **Plus** header link is
-`33.36×44` CSS px, below the required 44×44 target size.
+1. **P1 demo exit state:** **Start for real** now removes only
+   `demo:focus-resume-card:sample-card` before its ordinary same-tab navigation
+   home. A modifier-click does not destroy an active demo because it does not
+   leave the current demo page. Returning to `/demo` therefore shows the
+   waiting sample rather than a persisted **RESUMED** state. The demo document
+   now describes this behavior truthfully.
+2. **P2 desktop target size:** every visible primary-navigation link now has a
+   44 by 44 CSS-pixel minimum. The desktop Plus link was previously 33.36 by
+   44 px; it is included in the browser accessibility target-size check at
+   both desktop and 390 px viewports.
+3. **Claim coverage:** added `demo-exit-discard` to `.factory/claims.json`.
+   Its exact Playwright assertion resumes the sample, activates **Start for
+   real**, checks that the isolated key is gone, revisits `/demo`, and checks
+   for the waiting, actionable sample.
 
-Everything else tested passed:
+No extension storage behavior, card capture/resume behavior, package format,
+or visual direction was changed.
+
+## Verification
+
+Clean dependency install:
 
 ```text
-all 18 exact claim commands          PASS after clean npm ci
-npm run check                        PASS (27 tests, typecheck, lint, build)
-npm run test:artifact                PASS (37,549 B MV3 ZIP)
-npm run test:package                 PASS (reproducible 13-file ZIP)
-npm run test:demo                    PASS (declared demo claims)
-npm run test:claims                  PASS (12 extension claims)
-npm run test:extension               PASS
-local and live npm run test:a11y     PASS
-npm run test:live                    PASS (19 files byte-match live)
-npm run test:gateway                 FAIL (required 429 responses absent)
+npm ci                                      PASS — 178 packages, 0 vulnerabilities
+npm run check                               PASS — typecheck, oxlint, 27 Vitest tests, production build
+npm run test:artifact                       PASS — 37,549 B MV3 ZIP and deployment rules
+npm run test:package                        PASS — 13 fixed-date archive files
+npm run test:demo                           PASS — 4 demo claims, including demo-exit-discard
+npm run test:claims                         PASS — 12 installed-extension claims
+npm run test:extension                      PASS — installed MV3 smoke flow, offline, keyboard, 390 px, axe, console
+A11Y_URL=http://127.0.0.1:4173 npm run test:a11y
+                                             PASS — home/demo/privacy/terms/404, desktop + 390 px,
+                                                    light/dark, reduced motion, keyboard, axe, no console errors
+verify-url.sh http://127.0.0.1:4173/        PASS — title, lang, one h1, main, image alt text, console
 ```
 
-The cold first screen passes: it plainly states the job, identifies interrupted
-developers, and exposes **Try it with sample data** in one click. Independent
-extension QA passed 4/5/12/13-word boundaries, capture with local screenshot,
-redaction, focus clock, replacement cancellation, exact URL resume, clear/undo,
-offline reload, keyboard/focus behavior, axe, and console checks. A live demo
-request log stayed entirely same-origin with no cookies or errors. Headers,
-immutable asset caching, real 404s, legal pages, links, and bundle budgets pass.
+The browser checks were run against the exact production `dist/site` output
+served by Vite preview. Lighthouse 13.4.1 reported local mobile scores of 100
+for Performance, Accessibility, Best Practices, and SEO; FCP was 1.0 s, LCP
+1.7 s, TBT 0 ms, and CLS 0. The generated JSON is retained in ignored local
+evidence at `.factory/evidence/repair-11/lighthouse-local.json`; Lighthouse
+printed a post-collection Chromium-tab crash, but the completed report has all
+four scores and metrics. The source site remains under the static budgets:
+2,920 B initial home JS, 14,779 B CSS, 124,548 B hero image, and 37,549 B
+extension ZIP.
 
-Fresh mobile Lighthouse: Performance 100, Accessibility 100, Best Practices
-100, SEO 100; FCP 1.0 s, LCP 1.5 s, TBT 0 ms, CLS 0, total transfer 132 KiB.
+## External release blocker
 
-Full evidence and exact reproduction details are in
-`.factory/verification-12.md`. No product code was modified; only this handoff
-and the independent verification report were updated.
+`npm run test:gateway` was rerun after the clean install at
+2026-08-29T12:47:44.787Z and still **fails** against
+`https://api.sociobot.in/api/v1`:
+
+```text
+license verification request 14: 200 (must be 429)
+checkout request 8:            303 with Dodo Location (must be 429 with no Location)
+```
+
+The checked-in acceptance contract requires 13 verify and 7 checkout requests
+per trusted client IP/product in 60 seconds, followed by `429`, a positive
+`Retry-After`, and `Cache-Control: no-store`. This is enforced by the shared
+Sociobot gateway, not the static site or MV3 package; this repository has no
+gateway implementation or deployment authority. The source client still
+handles a compliant 429 without blocking free card recovery. Do not relax the
+contract or release until the gateway owner enforces the response policy and
+`npm run test:gateway` passes.
+
+## Deployment and follow-up
+
+Deploy the `dist/site` directory as the static artifact, preserving
+`staticwebapp.config.json` and
+`downloads/focus-resume-card.zip`. After the branch push, run:
+
+```bash
+npm run test:live
+npm run test:gateway
+```
+
+`test:live` must byte-match the built static files, validate the MV3 download,
+headers, 404s, and ordinary checkout redirect. The gateway check is the only
+known release blocker; P1 and P2 have exact regression coverage and local
+production-browser evidence.
