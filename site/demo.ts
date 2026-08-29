@@ -6,6 +6,7 @@ const stateNode = document.querySelector<HTMLElement>('#card-state');
 const resultNode = document.querySelector<HTMLElement>('#demo-result');
 const resumeButton = document.querySelector<HTMLButtonElement>('#resume-sample');
 const resetButton = document.querySelector<HTMLButtonElement>('#reset-demo');
+const startForRealLink = document.querySelector<HTMLAnchorElement>('#start-for-real');
 
 function readState(): DemoState {
   try {
@@ -35,4 +36,8 @@ resumeButton?.addEventListener('click', () => {
 });
 
 resetButton?.addEventListener('click', reset);
+startForRealLink?.addEventListener('click', (event) => {
+  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+  localStorage.removeItem(DEMO_KEY);
+});
 render(readState());

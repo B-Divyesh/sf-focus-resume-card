@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { chromium } from '@playwright/test';
 
 const requested = process.argv.join(' ');
-const tags = ['@claim:demo-sample-card', '@claim:demo-isolation', '@claim:demo-local-data'];
+const tags = ['@claim:demo-sample-card', '@claim:demo-isolation', '@claim:demo-exit-discard', '@claim:demo-local-data'];
 const selected = tags.filter((tag) => !requested.includes('--grep') || requested.includes(tag));
 const port = 4176;
 const baseUrl = `http://127.0.0.1:${port}`;
@@ -52,6 +52,20 @@ try {
     requireCondition(await page.getByText('Demo reset. The sample card is waiting again.').isVisible(), '@claim:demo-isolation: reset feedback is missing');
     requireCondition((await page.evaluate(() => localStorage.getItem('demo:focus-resume-card:sample-card'))) === null, '@claim:demo-isolation: reset did not clear sample state');
     console.log('@claim:demo-isolation pass');
+  }
+
+  if (selected.includes('@claim:demo-exit-discard')) {
+    await page.getByRole('button', { name: 'Resume this page' }).click();
+    requireCondition((await page.evaluate(() => localStorage.getItem('demo:focus-resume-card:sample-card'))) !== null, '@claim:demo-exit-discard: resume did not create isolated sample state');
+    await Promise.all([
+      page.waitForURL(`${baseUrl}/`),
+      page.getByRole('link', { name: 'Start for real' }).click(),
+    ]);
+    requireCondition((await page.evaluate(() => localStorage.getItem('demo:focus-resume-card:sample-card'))) === null, '@claim:demo-exit-discard: Start for real did not discard sample state');
+    await page.goto(`${baseUrl}/demo/`, { waitUntil: 'networkidle' });
+    requireCondition(await page.getByText('Waiting', { exact: true }).isVisible(), '@claim:demo-exit-discard: revisiting demo retained resumed state');
+    requireCondition(await page.getByRole('button', { name: 'Resume this page' }).isEnabled(), '@claim:demo-exit-discard: revisiting demo did not restore an actionable sample');
+    console.log('@claim:demo-exit-discard pass');
   }
 
   if (selected.includes('@claim:demo-local-data')) {

@@ -14,6 +14,13 @@
     "sandbox": "A fresh context resumes and resets the sample; only the demo:focus-resume-card key is used."
   },
   {
+    "id": "demo-exit-discard",
+    "claim": "Starting for real discards the demo sample state",
+    "where": "/demo banner and sample explanation",
+    "test": "npm run test:demo -- --grep @claim:demo-exit-discard",
+    "sandbox": "A fresh context resumes the sample, starts for real, then revisits /demo and sees a waiting sample with no demo storage key."
+  },
+  {
     "id": "demo-local-data",
     "claim": "The site loads no analytics, tracking, third-party scripts, fonts, or runtime CDNs",
     "where": "Landing footer, privacy page, and README",

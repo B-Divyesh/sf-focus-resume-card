@@ -60,6 +60,14 @@ for (const viewport of viewports) {
     })) : [];
     if (undersizedLinks.length) failures.push(`${viewport.name} ${route}: undersized links: ${undersizedLinks.join(', ')}`);
 
+    const undersizedPrimaryNavigation = await page.locator('header nav a:visible').evaluateAll((links) => links.flatMap((link) => {
+      const box = link.getBoundingClientRect();
+      return box.width + 0.01 < 44 || box.height + 0.01 < 44
+        ? [`${link.textContent?.trim() || link.getAttribute('aria-label') || link.getAttribute('href')}: ${box.width.toFixed(1)}×${box.height.toFixed(1)}`]
+        : [];
+    }));
+    if (undersizedPrimaryNavigation.length) failures.push(`${viewport.name} ${route}: undersized primary navigation: ${undersizedPrimaryNavigation.join(', ')}`);
+
     const renderedPolicy = await page.evaluate(() => ({
       background: getComputedStyle(document.documentElement).backgroundColor,
       scrollBehavior: getComputedStyle(document.documentElement).scrollBehavior,
@@ -88,7 +96,7 @@ for (const viewport of viewports) {
     const serious = results.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact ?? ''));
     if (serious.length) failures.push(`${viewport.name} ${route}: axe ${serious.map((violation) => violation.id).join(', ')}`);
     if (errors.length) failures.push(`${viewport.name} ${route}: console/page errors: ${errors.join('; ')}`);
-    evidence[`${viewport.name}:${route}`] = { results, firstFocus, skipTarget, overflow, undersizedLinks, renderedPolicy, errors };
+    evidence[`${viewport.name}:${route}`] = { results, firstFocus, skipTarget, overflow, undersizedLinks, undersizedPrimaryNavigation, renderedPolicy, errors };
     await page.close();
   }
   await context.close();

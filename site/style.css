@@ -12,7 +12,7 @@ button,input { font:inherit; }
 .wordmark { display:inline-flex; min-height:44px; align-items:center; gap:12px; font:700 18px/1 Georgia,Cambria,"Times New Roman",serif; text-decoration:none; }
 .mark,.waypoint,.closing-marker { display:inline-block; width:16px; height:16px; border:4px solid var(--surface); border-radius:50%; background:var(--trail); box-shadow:0 0 0 1px var(--trail),0 0 0 7px var(--paper),0 0 0 8px var(--contour); }
 .nav-shell nav { display:flex; align-items:center; gap:28px; }
-.nav-shell nav a { min-height:44px; display:flex; align-items:center; font-size:14px; font-weight:700; text-decoration:none; }
+.nav-shell nav a { display:flex; min-width:44px; min-height:44px; align-items:center; justify-content:center; font-size:14px; font-weight:700; text-decoration:none; }
 .nav-download { padding:0 16px; border:1px solid var(--ink); border-radius:5px; }
 .hero { display:grid; width:min(1180px,calc(100% - 48px)); grid-template-columns:minmax(0,.9fr) minmax(420px,1.1fr); gap:clamp(48px,7vw,96px); align-items:center; min-height:760px; margin:auto; padding:80px 0 92px; }
 .eyebrow { margin:0 0 12px; color:var(--muted); font-size:12px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }
