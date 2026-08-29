@@ -9,9 +9,9 @@ implemented or deployable from this static-site/MV3 repository.
 ## Finding reproduced and regression coverage
 
 Independent verification 13 reported that the billing gateway did not enforce
-the checked-in per-client-IP/product allowance. A fresh clean-install probe at
-2026-08-29T13:30:59Z reproduced the exact failure against
-`https://api.sociobot.in/api/v1`:
+the checked-in per-client-IP/product allowance. Fresh clean-install probes at
+2026-08-29T13:30:59Z and again after deployment at 2026-08-29T13:38:44Z
+reproduced the exact failure against `https://api.sociobot.in/api/v1`:
 
 | Route | Required behaviour | Fresh result |
 | --- | --- | --- |
@@ -77,10 +77,13 @@ npm run test:gateway                        FAIL — external gateway: verify 14
 
 ## Deployment and next step
 
-No production deployment was made: the only release blocker is still present,
-and a static deployment cannot repair it. The `dist/site` artifact is
-unchanged from the live 19-file release; the added regression test is
-repository verification only.
+The factory static deployment completed successfully from `dist/site` with
+deployment ID `6677f955-49b5-409c-b3b1-cc3131531588`. It reused the existing
+East US 2 `sf-focus-resume-card` Static Web App, and the configured custom
+domain returned HTTPS 200. Post-deployment `npm run test:live`, live desktop
+and 390 px `test:a11y`, and `verify-url.sh` all passed with the same 19-file
+artifact identity. The deployment cannot repair the external billing gateway,
+so the product remains release-blocked despite the healthy static deployment.
 
 The Sociobot gateway owner must enforce the checked-in
 `.factory/gateway-rate-limit-contract.json` exactly: key by trusted client IP
