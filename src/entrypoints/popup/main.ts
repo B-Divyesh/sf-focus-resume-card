@@ -191,11 +191,12 @@ async function renderCapture() {
       actionError.textContent = '';
       actionInput.removeAttribute('aria-invalid');
     });
-    requireElement<HTMLButtonElement>('timer-button').addEventListener('click', async (event) => {
+    const timerButton = requireElement<HTMLButtonElement>('timer-button');
+    timerButton.addEventListener('click', async () => {
       startedAt = Date.now();
       const updated = { ...preferences, focusStartedAt: startedAt };
       await setPreferences(updated);
-      (event.currentTarget as HTMLButtonElement).textContent = 'Reset focus clock';
+      timerButton.textContent = 'Reset focus clock';
       updateTimer();
       setStatus('Focus clock started. It stays only on this device.', 'success');
     });

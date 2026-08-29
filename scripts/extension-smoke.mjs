@@ -23,6 +23,7 @@ const context = await chromium.launchPersistentContext(profilePath, {
   ...(executablePath ? { executablePath } : { channel: 'chromium' }),
   headless: true,
   viewport: { width: 390, height: 844 },
+  colorScheme: 'light',
   args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
 });
 const browserErrors = [];
@@ -116,6 +117,24 @@ try {
   await reopen.waitForTimeout(100);
   const remaining = await worker.evaluate(() => chrome.storage.local.get('focusResumeCard'));
   if (remaining.focusResumeCard) throw new Error('Clear did not remove the saved card.');
+
+  const capture = await context.newPage();
+  watchPage(capture);
+  // Browser chrome cannot be clicked in headless Chromium, so provide the
+  // active-tab and selection inputs while exercising the built popup UI.
+  await capture.addInitScript(() => {
+    chrome.tabs.query = async () => [{ id: 1, url: 'https://example.test/focus-clock', title: 'Focus clock regression' }];
+    chrome.scripting.executeScript = async () => [{ result: '' }];
+  });
+  await capture.goto(`chrome-extension://${extensionId}/popup.html`);
+  const timerButton = capture.getByRole('button', { name: 'Start focus clock' });
+  await timerButton.waitFor();
+  await timerButton.click();
+  await capture.getByRole('button', { name: 'Reset focus clock' }).waitFor();
+  await capture.getByText('Focus clock started. It stays only on this device.').waitFor();
+  const clockPreferences = await worker.evaluate(() => chrome.storage.local.get('focusResumePreferences'));
+  if (typeof clockPreferences.focusResumePreferences?.focusStartedAt !== 'number') throw new Error('Focus clock did not store its start timestamp.');
+
   const options = await context.newPage();
   watchPage(options);
   await options.goto(`chrome-extension://${extensionId}/options.html`);
@@ -140,7 +159,7 @@ try {
   await offlinePopup.getByRole('heading', { name: action }).waitFor();
   await context.setOffline(false);
   if (browserErrors.length) throw new Error(`Extension console errors: ${browserErrors.join('; ')}`);
-  console.log('extension smoke: render, resume, reopen, clear, settings, keyboard bypass, 390px targets, offline shell, axe, and console passed');
+  console.log('extension smoke: render, resume, reopen, clear, focus clock feedback, settings, keyboard bypass, 390px targets, offline shell, axe, and console passed');
 } finally {
   await context.close();
   await new Promise((resolve, reject) => targetServer.close((error) => error ? reject(error) : resolve()));
